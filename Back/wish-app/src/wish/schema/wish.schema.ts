@@ -5,8 +5,6 @@ export type WishDocument = Wish & Document;
 
 @Schema({ timestamps: true }) // ajoute createdAt et updatedAt automatiquement
 export class Wish {
-    @Prop({ required: true })
-    user_id: string;
 
     @Prop({ required: true })
     wishlist_id: string;

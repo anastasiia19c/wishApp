@@ -2,9 +2,6 @@ import { IsString, IsOptional, IsNumber, IsEnum, IsUrl } from 'class-validator';
 
 export class CreateWishDto {
     @IsString()
-    user_id: string;
-
-    @IsString()
     wishlist_id: string;
 
     @IsString()

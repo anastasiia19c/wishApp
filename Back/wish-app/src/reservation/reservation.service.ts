@@ -17,10 +17,14 @@ export class ReservationService {
   }
 
   async findAll(): Promise<Reservation[]> {
-    return this.reservationModel.find().exec();
+    return this.reservationModel.find()
+    .populate('guest_id') 
+    .exec();
   }
 
   async findOne(id: string): Promise<Reservation> {
-    return this.reservationModel.findById(id).exec();
+    return this.reservationModel.findById(id)
+    .populate('guest_id') 
+    .exec();
   }
 }
