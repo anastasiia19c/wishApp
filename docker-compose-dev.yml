@@ -38,6 +38,7 @@ services:
     container_name: wishapp_mongo_express
     env_file: .env
     environment:
+      ME_CONFIG_MONGODB_URL: "${MONGODB_URI}"
       ME_CONFIG_BASICAUTH_ENABLED: "true"
       ME_CONFIG_BASICAUTH_USERNAME: "${MONGO_EXPRESS_USER}"
       ME_CONFIG_BASICAUTH_PASSWORD: "${MONGO_EXPRESS_PASS}"
