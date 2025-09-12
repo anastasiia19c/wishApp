@@ -43,7 +43,7 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: "${MONGO_EXPRESS_USER}"
       ME_CONFIG_BASICAUTH_PASSWORD: "${MONGO_EXPRESS_PASS}"
     ports:
-      - "8081:8081"
+      - "${MONGO_EXPRESS_PORT}:${MONGO_EXPRESS_PORT}"
     depends_on:
       mongodb:
         condition: service_healthy
