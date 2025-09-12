@@ -7,9 +7,7 @@ import { UpdateWishDto } from './dto/update-wish.dto';
 
 @Injectable()
 export class WishService {
-  constructor(
-    @InjectModel(Wish.name) private wishModel: Model<WishDocument>,
-  ) {}
+  constructor(@InjectModel(Wish.name) private wishModel: Model<WishDocument>) {}
 
   async create(createWishDto: CreateWishDto): Promise<Wish> {
     const newWish = new this.wishModel(createWishDto);
@@ -17,15 +15,17 @@ export class WishService {
   }
 
   async findAll(): Promise<Wish[]> {
-    return this.wishModel.find().exec();
+    return this.wishModel.find().populate('wishlist_id').exec();
   }
 
   async findOne(id: string): Promise<Wish> {
-    return this.wishModel.findById(id).exec();
+    return this.wishModel.findById(id).populate('wishlist_id').exec();
   }
 
   async update(id: string, updateWishDto: UpdateWishDto): Promise<Wish> {
-    return this.wishModel.findByIdAndUpdate(id, updateWishDto, { new: true }).exec();
+    return this.wishModel
+      .findByIdAndUpdate(id, updateWishDto, { new: true })
+      .exec();
   }
 
   async remove(id: string): Promise<Wish> {
