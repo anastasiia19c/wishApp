@@ -1,12 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+import { Wishlist } from '../../wishlist/schemas/wishlist.schema';
 
 export type WishDocument = Wish & Document;
 
 @Schema({ timestamps: true }) // ajoute createdAt et updatedAt automatiquement
 export class Wish {
-  @Prop({ required: true })
-  wishlist_id: string;
+  @Prop({ type: Types.ObjectId, ref: Wishlist.name, required: true })
+  wishlist_id: Types.ObjectId;
 
   @Prop({ required: true })
   title: string;
