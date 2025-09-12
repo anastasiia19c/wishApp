@@ -11,7 +11,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 @Module({
   imports: [
     WishModule,
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(process.env.ME_CONFIG_MONGODB_URL),
     ReservationModule,
     GuestModule,
     UserModule,
