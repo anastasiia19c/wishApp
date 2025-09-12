@@ -9,7 +9,14 @@ import { UserModule } from './user/user.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
-  imports: [WishModule, MongooseModule.forRoot(process.env.MONGODB_URI), ReservationModule, GuestModule, UserModule, WishlistModule],
+  imports: [
+    WishModule,
+    MongooseModule.forRoot(process.env.MONGODB_URI),
+    ReservationModule,
+    GuestModule,
+    UserModule,
+    WishlistModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
