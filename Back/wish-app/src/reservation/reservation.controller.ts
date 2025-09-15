@@ -37,5 +37,4 @@ export class ReservationController {
   ) {
     return this.reservationService.findOneByUser(userId, reservationId);
   }
-
 }

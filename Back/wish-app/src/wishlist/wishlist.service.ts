@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wishlist, WishlistDocument } from './schemas/wishlist.schema';
@@ -31,7 +35,7 @@ export class WishlistService {
       return await wishlist.save();
     } catch (error: any) {
       if (error.code === 11000) {
-        // Erreur MongoDB : clé dupliquée 
+        // Erreur MongoDB : clé dupliquée
         throw new BadRequestException(
           `This user already has a wishlist with title "${dto.title}"`,
         );

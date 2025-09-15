@@ -8,7 +8,10 @@ import { Model, Types } from 'mongoose';
 import { Wish, WishDocument } from './schema/wish.schema';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
-import { Wishlist, WishlistDocument } from '../wishlist/schemas/wishlist.schema';
+import {
+  Wishlist,
+  WishlistDocument,
+} from '../wishlist/schemas/wishlist.schema';
 
 @Injectable()
 export class WishService {

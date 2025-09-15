@@ -114,7 +114,10 @@ export class ReservationService {
       .exec();
   }
 
-  async findOneByUser(userId: string, reservationId: string): Promise<Reservation> {
+  async findOneByUser(
+    userId: string,
+    reservationId: string,
+  ): Promise<Reservation> {
     // Vérifier que l’utilisateur existe
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
@@ -135,5 +138,4 @@ export class ReservationService {
 
     return reservation;
   }
-
 }

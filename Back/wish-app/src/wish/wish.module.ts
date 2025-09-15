@@ -7,8 +7,9 @@ import { Wishlist, WishlistSchema } from 'src/wishlist/schemas/wishlist.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Wish.name, schema: WishSchema },
-                              { name: Wishlist.name, schema: WishlistSchema },
+    MongooseModule.forFeature([
+      { name: Wish.name, schema: WishSchema },
+      { name: Wishlist.name, schema: WishlistSchema },
     ]),
   ],
   controllers: [WishController],

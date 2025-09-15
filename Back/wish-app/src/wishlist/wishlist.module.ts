@@ -9,7 +9,7 @@ import { User, UserSchema } from '../user/schemas/user.schema';
   imports: [
     MongooseModule.forFeature([
       { name: Wishlist.name, schema: WishlistSchema },
-      { name: User.name, schema: UserSchema }, 
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [WishlistController],
