@@ -1,8 +1,11 @@
+#Lancer le docker dans l'environnement de dev 
+#docker compose -f docker-compose-dev.yml --env-file .env.dev up -d --build
+
 services:                                                                            #Déclare les services (conteneurs) à lancer
   mongodb:                                                                           #Nom du service
     image: mongo:7                                                                   #Image officielle MongoDB v7
     container_name: wishapp_mongodb                                                  #Nom du conteneur
-    env_file: .env                                                                   #Charge les variables depuis le fichier .env
+    env_file: .env.dev                                                               #Charge les variables depuis le fichier .env
     volumes:                                                                         #Volumes montés dans le conteneur
       - mongo_data:/data/db                                                          #Données persistées de Mongo (base de données)
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro                 #Script d’init exécuté au 1er démarrage d’un volume vide
@@ -17,8 +20,9 @@ services:                                                                       
     build:                                                                           #Comment construire l’image
       context: ./Back/wish-app                                                       #Dossier où se trouve le projet
       dockerfile: Dockerfile                                                         #Dockerfile à utiliser
+      target: app_dev
     container_name: wishapp_backend_dev                                              #Nom du conteneur
-    env_file: .env                                                                   #Charge les variables depuis le fichier .env
+    env_file: .env.dev                                                               #Charge les variables depuis le fichier .env
     volumes:                                                                         #Volumes montés dans le conteneur
       - ./Back/wish-app:/usr/src/app                                                 #Monte le code source pour le hot-reload
       - /usr/src/app/node_modules                                                    #Garde node_modules côté conteneur (évite d’écraser par l’hôte)
@@ -32,7 +36,7 @@ services:                                                                       
   mongo-express:
     image: mongo-express
     container_name: wishapp_mongo_express
-    env_file: .env
+    env_file: .env.dev
     ports:
       - "${MONGO_EXPRESS_PORT}:${MONGO_EXPRESS_PORT}"
     depends_on:
