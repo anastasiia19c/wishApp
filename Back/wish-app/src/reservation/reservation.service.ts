@@ -93,4 +93,47 @@ export class ReservationService {
   async findOne(id: string): Promise<Reservation> {
     return this.reservationModel.findById(id).exec();
   }
+  async findByUser(userId: string): Promise<Reservation[]> {
+    // Vérifier si le user existe
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    // Retourner les réservations associées
+    return this.reservationModel
+      .find({ user_id: userId })
+      .populate('wishes')
+      .exec();
+  }
+
+  async findByGuest(guestId: string): Promise<Reservation[]> {
+    return this.reservationModel
+      .find({ guest_id: guestId })
+      .populate('wishes')
+      .exec();
+  }
+
+  async findOneByUser(userId: string, reservationId: string): Promise<Reservation> {
+    // Vérifier que l’utilisateur existe
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    // Chercher la réservation
+    const reservation = await this.reservationModel
+      .findOne({ _id: reservationId, user_id: userId })
+      .populate('wishes')
+      .exec();
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Reservation ${reservationId} not found for user ${userId}`,
+      );
+    }
+
+    return reservation;
+  }
+
 }

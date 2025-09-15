@@ -20,4 +20,22 @@ export class ReservationController {
   async findOne(@Param('id') id: string) {
     return this.reservationService.findOne(id);
   }
+  @Get('user/:userId')
+  async findByUser(@Param('userId') userId: string) {
+    return this.reservationService.findByUser(userId);
+  }
+
+  @Get('guest/:guestId')
+  async findByGuest(@Param('guestId') guestId: string) {
+    return this.reservationService.findByGuest(guestId);
+  }
+
+  @Get(':reservationId/user/:userId')
+  async findOneByUser(
+    @Param('userId') userId: string,
+    @Param('reservationId') reservationId: string,
+  ) {
+    return this.reservationService.findOneByUser(userId, reservationId);
+  }
+
 }
