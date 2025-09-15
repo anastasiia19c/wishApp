@@ -1,33 +1,33 @@
-services:
-  mongodb:
-    image: mongo:7
-    container_name: wishapp_mongodb
-    env_file: .env
-    volumes:
-      - mongo_data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    healthcheck:
+services:                                                                            #Déclare les services (conteneurs) à lancer
+  mongodb:                                                                           #Nom du service
+    image: mongo:7                                                                   #Image officielle MongoDB v7
+    container_name: wishapp_mongodb                                                  #Nom du conteneur
+    env_file: .env                                                                   #Charge les variables depuis le fichier .env
+    volumes:                                                                         #Volumes montés dans le conteneur
+      - mongo_data:/data/db                                                          #Données persistées de Mongo (base de données)
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro                 #Script d’init exécuté au 1er démarrage d’un volume vide
+    healthcheck:                                                                     #Vérifie que Mongo est prêt avant de lancer d’autres services
       test: ["CMD", "mongosh", "-u", "${MONGO_INITDB_ROOT_USERNAME}", "-p", "${MONGO_INITDB_ROOT_PASSWORD}",
-            "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+            "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"] #Fait un 'ping' via mongosh avec authentification
+      interval: 5s                                                                   #Fréquence du healthcheck
+      timeout: 5s                                                                    #Délai maximum par check
+      retries: 20                                                                    #Nombre d’essais avant de considérer 'unhealthy'
 
-  backend:
-    build:
-      context: ./Back/wish-app
-      dockerfile: Dockerfile
-    container_name: wishapp_backend_dev
-    env_file: .env
-    volumes:
-      - ./Back/wish-app:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
-    depends_on:
+  backend:                                                                           #Nom du service
+    build:                                                                           #Comment construire l’image
+      context: ./Back/wish-app                                                       #Dossier où se trouve le projet
+      dockerfile: Dockerfile                                                         #Dockerfile à utiliser
+    container_name: wishapp_backend_dev                                              #Nom du conteneur
+    env_file: .env                                                                   #Charge les variables depuis le fichier .env
+    volumes:                                                                         #Volumes montés dans le conteneur
+      - ./Back/wish-app:/usr/src/app                                                 #Monte le code source pour le hot-reload
+      - /usr/src/app/node_modules                                                    #Garde node_modules côté conteneur (évite d’écraser par l’hôte)
+    ports:                                                                           #Ports du conteneur vers l'hôte
+      - "${BACKEND_PORT}:${BACKEND_PORT}"                                            #Port du NestJs par défaut
+    depends_on:                                                                      #Attend que Mongo soit 'healthy' avant de démarrer
       mongodb:
         condition: service_healthy
-    restart: always
+    restart: always                                                                  #Redémarre le conteneur s’il s’arrête
 
   mongo-express:
     image: mongo-express
@@ -40,5 +40,5 @@ services:
         condition: service_healthy
     restart: always
 
-volumes:
-  mongo_data:
+volumes:                                                                             #Déclare les volumes Docker persistants
+  mongo_data:                                                                        #Volume pour les fichiers de données Mongo
