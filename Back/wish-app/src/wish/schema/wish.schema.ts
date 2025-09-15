@@ -29,3 +29,4 @@ export class Wish {
 }
 
 export const WishSchema = SchemaFactory.createForClass(Wish);
+WishSchema.index({ wishlist_id: 1, title: 1 }, { unique: true });

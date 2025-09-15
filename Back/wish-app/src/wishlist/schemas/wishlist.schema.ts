@@ -26,3 +26,5 @@ export class Wishlist {
 }
 
 export const WishlistSchema = SchemaFactory.createForClass(Wishlist);
+
+WishlistSchema.index({ user_id: 1, title: 1 }, { unique: true });
