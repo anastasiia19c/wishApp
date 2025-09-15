@@ -17,11 +17,11 @@ export class WishlistService {
   }
 
   async findAll(): Promise<Wishlist[]> {
-    return this.wishlistModel.find().populate('user_id').exec();
+    return this.wishlistModel.find().exec();
   }
 
   async findOne(id: string): Promise<Wishlist> {
-    return this.wishlistModel.findById(id).populate('user_id').exec();
+    return this.wishlistModel.findById(id).exec();
   }
 
   async update(id: string, dto: UpdateWishlistDto): Promise<Wishlist> {
