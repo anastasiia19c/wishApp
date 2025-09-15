@@ -1,24 +1,42 @@
-#Prend l’image officielle Node 20 basée sur Alpine Linux
-FROM node:20-alpine
+# Étape de base (commune)
+FROM node:20-alpine AS base
 
-# Pour le hot-reload fiable dans Docker
-#Active les comportements “dev”
-ENV NODE_ENV=development \
-    #Forcent les watchers de fichiers (Chokidar/Webpack) à scruter périodiquement
-    CHOKIDAR_USEPOLLING=true \
-    #le hot-reload détecte bien les changements montés en volume
-    WATCHPACK_POLLING=true
-
-#Définit le répertoire de travail à l’intérieur du conteneur
 WORKDIR /usr/src/app
 
-# Installer les deps en cache
-#Copie uniquement package.json et package-lock.json. Permet d’utiliser le cache Docker
 COPY package*.json ./
-#Installe les dépendances exactement selon le lockfile; Supprime le dossier node_modules s’il existe déjà
+
 RUN npm ci
 
-#Ecouté sur le port 3000
+# Étape builder (compilation TS → JS)
+FROM base AS builder
+COPY . .
+RUN npm run build
+
+##################################
+# Étape PROD
+##################################
+FROM node:20-alpine AS app_prod
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/package*.json ./
+
 EXPOSE 3000
-#Commande pour démarrer le conteneur NestJS
+CMD ["node", "dist/main.js"]
+
+##################################
+# Étape DEV
+##################################
+FROM base AS app_dev
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=development \
+    CHOKIDAR_USEPOLLING=true \
+    WATCHPACK_POLLING=true
+
+COPY . .
+
+EXPOSE 4000
 CMD ["npm", "run", "start:dev"]
