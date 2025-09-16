@@ -23,22 +23,7 @@ export default function EntranceScreen() {
         />
 
         {/* Titre */}
-        <Text style={styles.title}>Avez-vous un compte?</Text>
-
-        {/* Boutons */}
-        <TouchableOpacity
-            style={styles.buttonPrimary}
-            onPress={() => router.push("/")} // Redirige vers la page de connexion
-        >
-            <Text style={styles.buttonPrimaryText}>Oui, je souhaite me connecter</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-            style={styles.buttonSecondary}
-            onPress={() => router.push("/reservation/pseudo")} // Redirige vers la page d'inscription
-        >
-            <Text style={styles.buttonSecondaryText}>Non, je n’ai pas de compte</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>Votre choix a été bien enregistré. Vous pouvez quitter la page</Text>
         </View>
     );
     }

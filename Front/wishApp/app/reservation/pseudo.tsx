@@ -1,15 +1,46 @@
+import React, { useState } from 'react';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-import { View, Text, TouchableOpacity, TextInput} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert } from "react-native";
 import { Stack, router } from "expo-router";
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { storageSingleton } from '../../storageSingleton';
 
 export default function PseudoScreen() {
-    //const [username, setUsername] = useState("");
+    const [username, setUsername] = useState("");
+
+    const handleContinue = async () => {
+        if (!username.trim()) {
+            Alert.alert("Erreur", "Veuillez entrer un pseudo !");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:4000/guest/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    pseudo: username,
+                }),
+            });
+
+            const data = await response.json();
+            console.log("Réponse backend:", data);
+
+            if (response.ok) {
+                await storageSingleton.setItem("token", data.token);
+
+                Alert.alert("Succès", "Pseudo enregistré !");
+                router.push("/reservation/wishlist"); 
+            } else {
+                Alert.alert("Erreur", data.message || "Impossible d’ajouter le pseudo.");
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erreur", "Problème de connexion au serveur.");
+        }
+    };
+
 
     return (
         <View style={styles.container}>
@@ -30,23 +61,14 @@ export default function PseudoScreen() {
             style={styles.input}
             placeholder="Entrez votre pseudo"
             placeholderTextColor="#aaa"
-            //value={username}
-            //onChangeText={setUsername}
+            value={username}
+            onChangeText={setUsername}
         />
 
         {/* Bouton continuer */}
-        <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-            // if (username.trim()) {
-            //     router.push("/home"); // 🔹 redirige vers la page suivante
-            // } else {
-            //     alert("Veuillez entrer un pseudo !");
-            // }
-            }}
-        >
-            <Text style={styles.buttonText}>CONTINUER</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleContinue}>
+                <Text style={styles.buttonText}>CONTINUER</Text>
+            </TouchableOpacity>
         </View>
     );
 }
