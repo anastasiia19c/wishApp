@@ -10,11 +10,13 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Public } from '../auth/public.decorator';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Post('add') // POST /user/add
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -28,6 +30,11 @@ export class UserController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
+  }
+  @Public()
+  @Post('login') // POST /user/login
+  async login(@Body() body: { email: string; password: string }) {
+    return this.userService.login(body.email, body.password);
   }
 
   @Put('update/:id')

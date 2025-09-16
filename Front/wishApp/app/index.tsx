@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-//import { storageSingleton } from '../storageSingleton'; // Import du singleton
+import { storageSingleton } from '../storageSingleton'; // Import du singleton
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -9,6 +9,58 @@ export default function LoginScreen() {
     const [token, setToken] = useState<string | null>(null); // État local pour gérer le token
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+
+
+    useEffect(() => {
+        const checkAuth = async () => {
+        const token = await storageSingleton.getItem("token");
+        if (token) {
+            router.replace("/(tabs)/wishList"); 
+        }
+        setIsLoading(false);
+        };
+        checkAuth();
+    }, []);
+
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await fetch("http://localhost:4000/user/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json"},
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) {
+            Alert.alert("Succès", "Vous êtes connecté.");
+            await storageSingleton.setItem("token", data.token); // sauvegarde du token
+            setToken(data.token); // mise à jour de l'état React
+            router.push("/(tabs)/wishList"); // redirection vers la wishlist
+            } else {
+            Alert.alert("Erreur", data.message || "Échec de la connexion.");
+            }
+        } catch (error) {
+            Alert.alert("Erreur", "Problème de connexion au serveur.");
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await storageSingleton.removeItem("token");
+        setToken(null);
+        Alert.alert("Déconnexion réussie", "Vous avez été déconnecté.");
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
@@ -53,24 +105,24 @@ export default function LoginScreen() {
                     <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.loginButton}>
+                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                     <Text style={styles.loginButtonText}>
-                    {isLoading ? 'Chargement...' : 'Se connecter'}
+                        {isLoading ? "Chargement..." : "Se connecter"}
                     </Text>
                 </TouchableOpacity>
 
                 <View style={styles.accountLinkContainer}>
                     <TouchableOpacity onPress={() => router.replace('./auth')}>
-                    <Text style={styles.creerCompte}>Créer un compte</Text>
+                        <Text style={styles.creerCompte}>Créer un compte</Text>
                     </TouchableOpacity>
                 </View>
                 </>
             ) : (
                 <>
                 <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
-                <TouchableOpacity style={styles.loginButton} >
-                    <Text style={styles.loginButtonText}>Se déconnecter</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogout}>
+                        <Text style={styles.loginButtonText}>Se déconnecter</Text>
+                    </TouchableOpacity>
                 </>
             )}
             </View>
