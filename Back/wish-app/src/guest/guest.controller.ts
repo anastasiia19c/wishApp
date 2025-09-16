@@ -1,14 +1,26 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { GuestService } from './guest.service';
 import { CreateGuestDto } from './dto/create-guest.dto';
+import { Public } from 'src/auth/public.decorator';
+import { JwtService } from '@nestjs/jwt';
+
 
 @Controller('guest')
 export class GuestController {
-  constructor(private readonly guestService: GuestService) {}
+  constructor(private readonly guestService: GuestService,
+              private readonly jwtService: JwtService
+  ) {}
 
-  @Post('add') // POST /guest/add
+  @Public()
+  @Post('add')
   async create(@Body() createGuestDto: CreateGuestDto) {
-    return this.guestService.create(createGuestDto);
+    const guest = await this.guestService.create(createGuestDto);
+
+    // On génère un token avec l'ID du guest
+    const payload = { role: 'guest' };
+    const token = this.jwtService.sign(payload);
+
+    return { token, guest };
   }
 
   @Get() // GET /guest
