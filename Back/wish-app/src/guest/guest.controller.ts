@@ -4,11 +4,11 @@ import { CreateGuestDto } from './dto/create-guest.dto';
 import { Public } from 'src/auth/public.decorator';
 import { JwtService } from '@nestjs/jwt';
 
-
 @Controller('guest')
 export class GuestController {
-  constructor(private readonly guestService: GuestService,
-              private readonly jwtService: JwtService
+  constructor(
+    private readonly guestService: GuestService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @Public()

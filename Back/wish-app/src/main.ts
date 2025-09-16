@@ -4,7 +4,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-    app.enableCors({
+  app.enableCors({
     origin: 'http://localhost:8082',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,

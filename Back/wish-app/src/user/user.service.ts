@@ -1,16 +1,18 @@
-import { Injectable,UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtService } from '@nestjs/jwt'; 
-//import * as bcrypt from 'bcrypt'; 
+import { JwtService } from '@nestjs/jwt';
+//import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>,
-                                      private readonly jwtService: JwtService) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const newUser = new this.userModel(createUserDto);
@@ -35,7 +37,7 @@ export class UserService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
-    async login(email: string, password: string) {
+  async login(email: string) {
     // Ici tu dois vérifier dans ta DB si l’utilisateur existe
     const user = await this.findByEmail(email);
 
@@ -59,6 +61,4 @@ export class UserService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userModel.findOne({ email }).exec();
   }
-
-
 }

@@ -19,10 +19,10 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
     WishlistModule,
     JwtModule.register({
-          secret: 'tonSecretUltraSecret', // ⚠️ à mettre dans .env
-          signOptions: { expiresIn: '1h' }, // durée de validité
+      secret: 'tonSecretUltraSecret', // à mettre dans .env
+      signOptions: { expiresIn: '1h' }, // durée de validité
     }),
-    AuthModule
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
