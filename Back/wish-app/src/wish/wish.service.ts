@@ -1,17 +1,10 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wish, WishDocument } from './schema/wish.schema';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
-import {
-  Wishlist,
-  WishlistDocument,
-} from '../wishlist/schemas/wishlist.schema';
+import { Wishlist, WishlistDocument } from '../wishlist/schemas/wishlist.schema';
 
 @Injectable()
 export class WishService {
@@ -27,14 +20,10 @@ export class WishService {
     }
 
     // Vérifier que la wishlist existe
-    const wishlist = await this.wishlistModel
-      .findById(createWishDto.wishlist_id)
-      .exec();
+    const wishlist = await this.wishlistModel.findById(createWishDto.wishlist_id).exec();
 
     if (!wishlist) {
-      throw new NotFoundException(
-        `Wishlist with id ${createWishDto.wishlist_id} not found`,
-      );
+      throw new NotFoundException(`Wishlist with id ${createWishDto.wishlist_id} not found`);
     }
 
     try {
@@ -63,9 +52,7 @@ export class WishService {
   }
 
   async update(id: string, updateWishDto: UpdateWishDto): Promise<Wish> {
-    const updated = await this.wishModel
-      .findByIdAndUpdate(id, updateWishDto, { new: true })
-      .exec();
+    const updated = await this.wishModel.findByIdAndUpdate(id, updateWishDto, { new: true }).exec();
     if (!updated) {
       throw new NotFoundException(`Wish with id ${id} not found`);
     }

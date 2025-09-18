@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type GuestDocument = Guest & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Guest {
   @Prop({ required: true, unique: true })
   pseudo: string;
