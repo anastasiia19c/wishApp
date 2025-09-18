@@ -51,6 +51,10 @@ export class WishService {
     return wish;
   }
 
+  async findByWishlist(wishlistId: string): Promise<Wish[]> {
+    return this.wishModel.find({ wishlist_id: new Types.ObjectId(wishlistId) }).exec();
+  }
+
   async update(id: string, updateWishDto: UpdateWishDto): Promise<Wish> {
     const updated = await this.wishModel.findByIdAndUpdate(id, updateWishDto, { new: true }).exec();
     if (!updated) {

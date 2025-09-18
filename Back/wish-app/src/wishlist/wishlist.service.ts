@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wishlist, WishlistDocument } from './schemas/wishlist.schema';
@@ -14,7 +10,7 @@ import { User, UserDocument } from '../user/schemas/user.schema';
 export class WishlistService {
   constructor(
     @InjectModel(Wishlist.name) private wishlistModel: Model<WishlistDocument>,
-    @InjectModel(User.name) private userModel: Model<UserDocument>, // <-- inject User
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async create(dto: CreateWishlistDto): Promise<Wishlist> {
@@ -36,9 +32,7 @@ export class WishlistService {
     } catch (error: any) {
       if (error.code === 11000) {
         // Erreur MongoDB : clé dupliquée
-        throw new BadRequestException(
-          `This user already has a wishlist with title "${dto.title}"`,
-        );
+        throw new BadRequestException(`This user already has a wishlist with title "${dto.title}"`);
       }
       throw error; // toute autre erreur → 500
     }
@@ -50,6 +44,19 @@ export class WishlistService {
 
   async findOne(id: string): Promise<Wishlist> {
     return this.wishlistModel.findById(id).exec();
+  }
+
+  async findOneByUser(id: string, userId: string): Promise<Wishlist> {
+    const wishlist = await this.wishlistModel.findOne({
+      _id: new Types.ObjectId(id),
+      user_id: new Types.ObjectId(userId),
+    });
+
+    if (!wishlist) {
+      throw new NotFoundException(`Wishlist ${id} not found for user ${userId}`);
+    }
+
+    return wishlist;
   }
 
   async update(id: string, dto: UpdateWishlistDto): Promise<Wishlist> {
