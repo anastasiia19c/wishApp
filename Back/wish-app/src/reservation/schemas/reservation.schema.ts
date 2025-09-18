@@ -5,7 +5,7 @@ import { User } from '../../user/schemas/user.schema';
 
 export type ReservationDocument = Reservation & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Reservation {
   @Prop({ type: Types.ObjectId, ref: User.name, default: null })
   user_id: Types.ObjectId | null;
@@ -21,11 +21,7 @@ export const ReservationSchema = SchemaFactory.createForClass(Reservation);
 
 ReservationSchema.pre('validate', function (next) {
   if ((this.user_id && this.guest_id) || (!this.user_id && !this.guest_id)) {
-    return next(
-      new Error(
-        'Reservation must have either a user_id or a guest_id, but not both.',
-      ),
-    );
+    return next(new Error('Reservation must have either a user_id or a guest_id, but not both.'));
   }
   next();
 });

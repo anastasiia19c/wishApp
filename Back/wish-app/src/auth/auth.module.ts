@@ -4,14 +4,14 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
-    imports: [
-        PassportModule,
-        JwtModule.register({
-        secret: 'tonSecretUltraSecret', // ⚠️ à remplacer par process.env.JWT_SECRET
-        signOptions: { expiresIn: '1h' },
-        }),
-    ],
-    providers: [JwtStrategy],
-    exports: [JwtModule],
+  imports: [
+    PassportModule,
+    JwtModule.register({
+      secret: 'tonSecretUltraSecret', //à remplacer par process.env.JWT_SECRET
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
+  providers: [JwtStrategy],
+  exports: [JwtModule],
 })
 export class AuthModule {}

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Reservation, ReservationDocument } from './schemas/reservation.schema';
@@ -32,9 +28,7 @@ export class ReservationService {
       );
     }
     if (!dto.user_id && !dto.guest_id) {
-      throw new BadRequestException(
-        'Reservation must include a user_id or a guest_id',
-      );
+      throw new BadRequestException('Reservation must include a user_id or a guest_id');
     }
 
     if (dto.user_id) {
@@ -67,9 +61,7 @@ export class ReservationService {
         throw new NotFoundException(`Wish with id ${wishId} not found`);
       }
       if (wish.status !== 'available') {
-        throw new BadRequestException(
-          `Wish "${wish.title}" is already reserved`,
-        );
+        throw new BadRequestException(`Wish "${wish.title}" is already reserved`);
       }
     }
 
@@ -78,10 +70,7 @@ export class ReservationService {
     const saved = await reservation.save();
 
     // 4. Mettre à jour les wishes en "reserved"
-    await this.wishModel.updateMany(
-      { _id: { $in: dto.wishes } },
-      { $set: { status: 'reserved' } },
-    );
+    await this.wishModel.updateMany({ _id: { $in: dto.wishes } }, { $set: { status: 'reserved' } });
 
     return saved;
   }
@@ -101,23 +90,14 @@ export class ReservationService {
     }
 
     // Retourner les réservations associées
-    return this.reservationModel
-      .find({ user_id: userId })
-      .populate('wishes')
-      .exec();
+    return this.reservationModel.find({ user_id: userId }).populate('wishes').exec();
   }
 
   async findByGuest(guestId: string): Promise<Reservation[]> {
-    return this.reservationModel
-      .find({ guest_id: guestId })
-      .populate('wishes')
-      .exec();
+    return this.reservationModel.find({ guest_id: guestId }).populate('wishes').exec();
   }
 
-  async findOneByUser(
-    userId: string,
-    reservationId: string,
-  ): Promise<Reservation> {
+  async findOneByUser(userId: string, reservationId: string): Promise<Reservation> {
     // Vérifier que l’utilisateur existe
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
@@ -131,9 +111,7 @@ export class ReservationService {
       .exec();
 
     if (!reservation) {
-      throw new NotFoundException(
-        `Reservation ${reservationId} not found for user ${userId}`,
-      );
+      throw new NotFoundException(`Reservation ${reservationId} not found for user ${userId}`);
     }
 
     return reservation;
