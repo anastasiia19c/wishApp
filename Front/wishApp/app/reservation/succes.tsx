@@ -1,6 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-import { View, Text, TouchableOpacity, } from "react-native";
+import { Platform, StyleSheet , View, Text, TouchableOpacity, } from 'react-native';
 import { Stack, router } from "expo-router";
 
 import { HelloWave } from '@/components/HelloWave';
@@ -47,21 +46,5 @@ export default function EntranceScreen() {
         color: "#6C2DC7",
         marginBottom: 30,
         textAlign: "center",
-    },
-    buttonPrimary: {
-        marginVertical: 10,
-    },
-    buttonPrimaryText: {
-        fontSize: 16,
-        color: "#6C2DC7",
-        marginBottom: 20
-    },
-    buttonSecondary: {
-        marginVertical: 10,
-    },
-    buttonSecondaryText: {
-        fontSize: 16,
-        color: "#6C2DC7",
-        marginBottom: 20
-    },
+    }
 });

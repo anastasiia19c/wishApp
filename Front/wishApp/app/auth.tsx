@@ -135,14 +135,6 @@ export default function LoginScreen() {
         borderColor: '#ddd',
         fontFamily: "Poppins",
     },
-    forgotPassword: {
-        color: '#000',
-        fontSize: 15,
-        marginBottom: 20,
-        fontFamily: 'Poppins',
-        textDecorationLine: 'underline',
-        textDecorationColor: '#000',
-    },
     creerCompte: {
         color: '#000',
         fontSize: 10,

@@ -1,6 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-import { View, Text, TouchableOpacity, } from "react-native";
+import { Platform, StyleSheet , View, Text, TouchableOpacity, } from 'react-native';
 import { Stack, router } from "expo-router";
 
 import { HelloWave } from '@/components/HelloWave';

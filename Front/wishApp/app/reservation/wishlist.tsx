@@ -52,12 +52,13 @@ export default function WishlistScreen() {
 
         <View style={styles.infoRow}>
             <Image
-            source={require("../../assets/images/listDefault.jpg")}
-            style={styles.avatar}
+                source={require("../../assets/images/listDefault.jpg")}
+                style={styles.avatar}
             />
             <View>
-            <Text style={styles.descriptionText}>Ceci est une description</Text>
-            <Text style={styles.dateText}>Date de l’événement</Text>
+                <Text style={styles.descriptionText}>Ceci est une description</Text>
+                <Text style={styles.dateText}>Date de l’événement</Text>
+                <Text style={styles.dateText}>Nom propriétaire</Text>
             </View>
         </View>
         <Text style={styles.header}>Souhaits</Text>
@@ -169,8 +170,8 @@ export default function WishlistScreen() {
         marginBottom: 20,
     },
     avatar: {
-        width: 80,
-        height: 80,
+        width: 150,
+        height: 150,
         borderRadius: 40, // rond
         marginRight: 15,
         backgroundColor: "#eee",
