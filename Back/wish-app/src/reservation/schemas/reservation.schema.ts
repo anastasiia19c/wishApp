@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Guest } from '../../guest/schemas/guest.schema';
 import { User } from '../../user/schemas/user.schema';
+import { Wishlist } from '../../wishlist/schemas/wishlist.schema';
 
 export type ReservationDocument = Reservation & Document;
 
@@ -9,6 +10,9 @@ export type ReservationDocument = Reservation & Document;
 export class Reservation {
   @Prop({ type: Types.ObjectId, ref: User.name, default: null })
   user_id: Types.ObjectId | null;
+
+  @Prop({ type: Types.ObjectId, ref: Wishlist.name, required: true })
+  wishlist_id: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: Guest.name, default: null })
   guest_id: Types.ObjectId | null;
