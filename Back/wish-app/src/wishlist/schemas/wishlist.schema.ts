@@ -4,7 +4,7 @@ import { User } from '../../user/schemas/user.schema';
 
 export type WishlistDocument = Wishlist & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Wishlist {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user_id: Types.ObjectId; // propriétaire
@@ -26,3 +26,5 @@ export class Wishlist {
 }
 
 export const WishlistSchema = SchemaFactory.createForClass(Wishlist);
+
+WishlistSchema.index({ user_id: 1, title: 1 }, { unique: true });

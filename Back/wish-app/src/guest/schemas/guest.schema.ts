@@ -3,13 +3,11 @@ import { Document } from 'mongoose';
 
 export type GuestDocument = Guest & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Guest {
-  @Prop({ required: true })
-  pseudo: string;
-
   @Prop({ required: true, unique: true })
-  token: string;
+  pseudo: string;
 }
 
 export const GuestSchema = SchemaFactory.createForClass(Guest);
+GuestSchema.index({ pseudo: 1 }, { unique: true });

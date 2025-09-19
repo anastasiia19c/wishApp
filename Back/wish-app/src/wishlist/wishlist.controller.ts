@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Put,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
@@ -28,6 +20,11 @@ export class WishlistController {
   @Get(':id') // GET /wishlist/:id
   async findOne(@Param('id') id: string) {
     return this.wishlistService.findOne(id);
+  }
+
+  @Get(':id/:userId')
+  async findOneByUser(@Param('id') id: string, @Param('userId') userId: string) {
+    return this.wishlistService.findOneByUser(id, userId);
   }
 
   @Put('update/:id') // PUT /wishlist/update/:id

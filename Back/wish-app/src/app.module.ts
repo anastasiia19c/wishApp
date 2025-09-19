@@ -7,6 +7,8 @@ import { ReservationModule } from './reservation/reservation.module';
 import { GuestModule } from './guest/guest.module';
 import { UserModule } from './user/user.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +18,11 @@ import { WishlistModule } from './wishlist/wishlist.module';
     GuestModule,
     UserModule,
     WishlistModule,
+    JwtModule.register({
+      secret: 'tonSecretUltraSecret', // à mettre dans .env
+      signOptions: { expiresIn: '1h' }, // durée de validité
+    }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,7 @@ import { Wishlist } from '../../wishlist/schemas/wishlist.schema';
 
 export type WishDocument = Wish & Document;
 
-@Schema({ timestamps: true }) // ajoute createdAt et updatedAt automatiquement
+@Schema({ timestamps: true, versionKey: false }) // ajoute createdAt et updatedAt automatiquement
 export class Wish {
   @Prop({ type: Types.ObjectId, ref: Wishlist.name, required: true })
   wishlist_id: Types.ObjectId;
@@ -29,3 +29,4 @@ export class Wish {
 }
 
 export const WishSchema = SchemaFactory.createForClass(Wish);
+WishSchema.index({ wishlist_id: 1, title: 1 }, { unique: true });
