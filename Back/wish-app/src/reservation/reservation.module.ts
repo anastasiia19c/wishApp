@@ -6,6 +6,7 @@ import { Reservation, ReservationSchema } from './schemas/reservation.schema';
 import { User, UserSchema } from 'src/user/schemas/user.schema';
 import { Guest, GuestSchema } from 'src/guest/schemas/guest.schema';
 import { Wish, WishSchema } from 'src/wish/schema/wish.schema';
+import { Wishlist, WishlistSchema } from 'src/wishlist/schemas/wishlist.schema';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { Wish, WishSchema } from 'src/wish/schema/wish.schema';
       { name: User.name, schema: UserSchema },
       { name: Guest.name, schema: GuestSchema },
       { name: Wish.name, schema: WishSchema },
+      { name: Wishlist.name, schema: WishlistSchema },
     ]),
   ],
   controllers: [ReservationController],
