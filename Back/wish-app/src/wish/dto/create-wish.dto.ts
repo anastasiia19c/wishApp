@@ -23,6 +23,6 @@ export class CreateWishDto {
   @IsNumber()
   price?: number;
 
-  @IsEnum(['available', 'reserved'])
+  @IsEnum(['available', 'reserved', 'wanted'])
   status: string;
 }

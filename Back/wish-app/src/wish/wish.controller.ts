@@ -27,6 +27,11 @@ export class WishController {
     return this.wishService.findByWishlist(wishlistId);
   }
 
+  @Get('wishlist/:wishlistId/available')
+  async findAvailableByWishlist(@Param('wishlistId') wishlistId: string) {
+    return this.wishService.findAvailableByWishlist(wishlistId);
+  }
+
   @Put('update/:id')
   async update(@Param('id') id: string, @Body() updateWishDto: UpdateWishDto) {
     return this.wishService.update(id, updateWishDto);
