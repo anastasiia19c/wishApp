@@ -26,9 +26,7 @@ ENV NODE_ENV=production
 # Copie seulement le code compilé
 COPY --from=builder /usr/src/app/dist ./dist
 # Copie les dépendances
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-# Copie package.json
-COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=base /usr/src/app/node_modules ./node_modules
 # Port exposé en prod
 EXPOSE 3000
 # Commande de lancement en prod
