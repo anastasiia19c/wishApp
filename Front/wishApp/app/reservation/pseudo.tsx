@@ -31,9 +31,9 @@ export default function PseudoScreen() {
                 await storageSingleton.setItem("token", data.token);
                 await storageSingleton.setItem("role", data.role); 
                 if (data.guest) {
-                    await storageSingleton.setItem("id", data.guest._id);
+                    await storageSingleton.setItem("guest_id", data.guest._id);
                 } else if (data.user) {
-                    await storageSingleton.setItem("id", data.user._id);
+                    await storageSingleton.setItem("user_id", data.user._id);
                 }
                 Alert.alert("Succès", "Pseudo enregistré !");
                 router.push("/reservation/wishlist"); 

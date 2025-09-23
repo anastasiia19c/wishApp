@@ -27,7 +27,7 @@ export default function EntranceScreen() {
         {/* Boutons */}
         <TouchableOpacity
             style={styles.buttonPrimary}
-            onPress={() => router.push("/")} // Redirige vers la page de connexion
+            onPress={() => router.push("/reservation/login")} // Redirige vers la page de connexion
         >
             <Text style={styles.buttonPrimaryText}>Oui, je souhaite me connecter</Text>
         </TouchableOpacity>

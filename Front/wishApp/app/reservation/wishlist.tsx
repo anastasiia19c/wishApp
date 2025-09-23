@@ -112,7 +112,8 @@ export default function WishlistScreen() {
         try {
             const token = await storageSingleton.getItem("token");
             const role = await storageSingleton.getItem("role");
-            const id = await storageSingleton.getItem("id");
+            const guestId = await storageSingleton.getItem("guest_id");
+            const userId = await storageSingleton.getItem("user_id");
 
             console.log("Role:", role);
             if (!token || !role) {
@@ -134,11 +135,11 @@ export default function WishlistScreen() {
                 wishes: selectedWishes,
             };
 
-            if (role === "owner") {
-                body.user_id = "68cd56a70b14017858596fd6"; // ID du user
+            if (userId !== null) {
+                body.user_id = userId; // ID du user
                 body.guest_id = null;
-            } else if (role === "guest") {
-                body.guest_id = id; // ID du guest
+            } else if (guestId !== null) {
+                body.guest_id = guestId; // ID du guest
                 body.user_id = null;
             }
 
