@@ -29,6 +29,12 @@ export class UserController {
     return this.userService.login(body.email, body.password);
   }
 
+  @Public()
+  @Post('login-as-guest') // POST /user/login-as-guest
+  async loginAsGuest(@Body() body: { email: string; password: string }) {
+    return this.userService.loginAsGuest(body.email, body.password);
+  }
+
   @Put('update/:id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
