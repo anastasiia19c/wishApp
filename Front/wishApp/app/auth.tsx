@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { storageSingleton } from '../storageSingleton';
 
 export default function RegisterScreen() {
     const [email, setEmail] = useState('');
     const [nom, setNom] = useState('');
     const [password, setPassword] = useState('');
-    const [token, setToken] = useState<string | null>(null); // État local pour gérer le token
+    const [token] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const handleRegister = async () => {
         if (!nom || !email || !password) {
-        Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+        setErrorMessage('Veuillez remplir tous les champs.');
         return;
         }
 
@@ -30,17 +30,14 @@ export default function RegisterScreen() {
             }),
         });
 
-        const data = await response.json();
-
         if (response.ok) {
-            Alert.alert('Succès', 'Compte créé avec succès. Connectez-vous maintenant !');
             router.replace('/');
         } else {
-            Alert.alert('Erreur', data.message || 'Impossible de créer un compte.');
+            setErrorMessage('Impossible de créer un compte.');
         }
         } catch (error) {
         console.error(error);
-        Alert.alert('Erreur', 'Problème de connexion au serveur.');
+        setErrorMessage('Problème de connexion au serveur.');
         } finally {
         setIsLoading(false);
         }
@@ -61,7 +58,9 @@ export default function RegisterScreen() {
                     <Text style={styles.creerCompte}>J'ai déjà un compte</Text>
                 </TouchableOpacity>
             </View>
-
+            {errorMessage && (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
             {!token ? (
                 <>
                 <View style={styles.inputContainer}>
@@ -204,4 +203,11 @@ export default function RegisterScreen() {
         paddingVertical: 20,
         backgroundColor: 'white',
     },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
+    }
 });

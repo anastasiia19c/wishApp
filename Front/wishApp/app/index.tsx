@@ -9,6 +9,7 @@ export default function LoginScreen() {
     const [token, setToken] = useState<string | null>(null); // État local pour gérer le token
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -25,7 +26,7 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+            setErrorMessage("Veuillez remplir tous les champs.");
             return;
         }
 
@@ -41,7 +42,6 @@ export default function LoginScreen() {
             const data = await response.json();
 
             if (response.status === 201) {
-                Alert.alert("Succès", "Vous êtes connecté.");
                 await storageSingleton.setItem("token", data.token); // sauvegarde du token
                 await storageSingleton.setItem("role", data.role); // sauvegarde du role
                 if (data.user && data.user.id) {
@@ -50,10 +50,10 @@ export default function LoginScreen() {
                 setToken(data.token);
                 router.push("/(tabs)/wishList"); // redirection vers la wishlist
             } else {
-                Alert.alert("Erreur", data.message || "Échec de la connexion.");
+                setErrorMessage("Échec de la connexion.");
             }
         } catch (error) {
-            Alert.alert("Erreur", "Problème de connexion au serveur.");
+            setErrorMessage("Problème de connexion au serveur.");
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -63,7 +63,7 @@ export default function LoginScreen() {
     const handleLogout = async () => {
         await storageSingleton.removeItem("token");
         setToken(null);
-        Alert.alert("Déconnexion réussie", "Vous avez été déconnecté.");
+        setErrorMessage( "Vous avez été déconnecté.");
     };
 
     return (
@@ -79,7 +79,9 @@ export default function LoginScreen() {
             <Text style={styles.sousTitle}>
                 Connectez-vous pour découvrir toutes nos fonctionnalités.
             </Text>
-
+            {errorMessage && (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
             {!token ? (
                 <>
                 <View style={styles.inputContainer}>
@@ -240,4 +242,11 @@ export default function LoginScreen() {
         paddingVertical: 20,
         backgroundColor: 'white',
     },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
+    }
 });

@@ -156,6 +156,11 @@ export default function WishlistScreen() {
                 throw new Error(`Erreur serveur: ${res.status}`);
             }
 
+            await storageSingleton.removeItem("token");
+            await storageSingleton.removeItem("role");
+            await storageSingleton.removeItem("guest_id");
+            await storageSingleton.removeItem("user_id");
+
             router.replace("/reservation/succes");
         } catch (err) {
             console.error(err);
