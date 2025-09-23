@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Alert,ActivityIndicator } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { storageSingleton } from "../../storageSingleton";
 
 export default function WishlistScreen() {
@@ -108,6 +108,60 @@ export default function WishlistScreen() {
             </View>
         </View>
     );
+    const saveReservation = async () => {
+        try {
+            const token = await storageSingleton.getItem("token");
+            const role = await storageSingleton.getItem("role");
+            const id = await storageSingleton.getItem("id");
+
+            console.log("Role:", role);
+            if (!token || !role) {
+                Alert.alert("Erreur", "Session invalide, veuillez vous reconnecter.");
+            return;
+            }
+            const selectedWishes = items
+            .filter((item) => item.status === "wanted")
+            .map((item) => item._id);
+
+            if (selectedWishes.length === 0) {
+                Alert.alert("Aucun choix", "Veuillez sélectionner au moins un cadeau.");
+                return;
+            }
+
+            // construire le body dynamiquement
+            const body: any = {
+                wishlist_id: wishlist._id,
+                wishes: selectedWishes,
+            };
+
+            if (role === "owner") {
+                body.user_id = "68cd56a70b14017858596fd6"; // ID du user
+                body.guest_id = null;
+            } else if (role === "guest") {
+                body.guest_id = id; // ID du guest
+                body.user_id = null;
+            }
+
+            const res = await fetch("http://localhost:4000/reservation/add", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+            },
+                body: JSON.stringify(body),
+            });
+
+            if (!res.ok) {
+                throw new Error(`Erreur serveur: ${res.status}`);
+            }
+
+            const data = await res.json();
+            router.replace("/reservation/succes");
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Erreur", "Impossible d’enregistrer votre choix.");
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -141,7 +195,7 @@ export default function WishlistScreen() {
         {/* Bouton fixe en bas */}
         <TouchableOpacity
             style={styles.saveButton}
-            onPress={() => alert("Choix enregistré !")}
+            onPress={saveReservation}
         >
             <Text style={styles.saveButtonText}>ENREGISTRER MON CHOIX</Text>
         </TouchableOpacity>

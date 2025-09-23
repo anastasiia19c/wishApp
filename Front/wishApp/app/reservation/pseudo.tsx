@@ -29,7 +29,12 @@ export default function PseudoScreen() {
 
             if (response.ok) {
                 await storageSingleton.setItem("token", data.token);
-
+                await storageSingleton.setItem("role", data.role); 
+                if (data.guest) {
+                    await storageSingleton.setItem("id", data.guest._id);
+                } else if (data.user) {
+                    await storageSingleton.setItem("id", data.user._id);
+                }
                 Alert.alert("Succès", "Pseudo enregistré !");
                 router.push("/reservation/wishlist"); 
             } else {

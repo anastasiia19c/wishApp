@@ -41,12 +41,16 @@ export default function LoginScreen() {
             const data = await response.json();
 
             if (response.status === 201) {
-            Alert.alert("Succès", "Vous êtes connecté.");
-            await storageSingleton.setItem("token", data.token); // sauvegarde du token
-            setToken(data.token); // mise à jour de l'état React
-            router.push("/(tabs)/wishList"); // redirection vers la wishlist
+                Alert.alert("Succès", "Vous êtes connecté.");
+                await storageSingleton.setItem("token", data.token); // sauvegarde du token
+                await storageSingleton.setItem("role", data.role); // sauvegarde du role
+                if (data.user && data.user.id) {
+                    await storageSingleton.setItem("id", data.user.id);
+                }
+                setToken(data.token);
+                router.push("/(tabs)/wishList"); // redirection vers la wishlist
             } else {
-            Alert.alert("Erreur", data.message || "Échec de la connexion.");
+                Alert.alert("Erreur", data.message || "Échec de la connexion.");
             }
         } catch (error) {
             Alert.alert("Erreur", "Problème de connexion au serveur.");
