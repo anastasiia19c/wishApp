@@ -17,10 +17,10 @@ export class GuestController {
     const guest = await this.guestService.create(createGuestDto);
 
     // On génère un token avec l'ID du guest
-    const payload = { role: 'guest' };
+    const payload = { role: 'guest' ,guest_id: guest._id.toString()};
     const token = this.jwtService.sign(payload);
 
-    return { token, guest };
+    return { token, role: 'guest', guest };
   }
 
   @Get() // GET /guest

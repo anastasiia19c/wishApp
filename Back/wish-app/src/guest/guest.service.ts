@@ -8,7 +8,7 @@ import { Guest, GuestDocument } from './schemas/guest.schema';
 export class GuestService {
   constructor(@InjectModel(Guest.name) private guestModel: Model<GuestDocument>) {}
 
-  async create(createGuestDto: CreateGuestDto): Promise<Guest> {
+  async create(createGuestDto: CreateGuestDto): Promise<GuestDocument> {
     const newGuest = new this.guestModel(createGuestDto);
     return newGuest.save();
   }

@@ -55,13 +55,13 @@ export class UserService {
     }
 
     // Générer un token JWT
-    const payload = { email: user.email };
+    const payload = { role: "owner" , email: user.email, user_id: user._id.toString() };
     const token = await this.jwtService.signAsync(payload);
 
-    return { token };
+    return { token, role: 'owner',user: {id: user._id, email: user.email} };
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 }
