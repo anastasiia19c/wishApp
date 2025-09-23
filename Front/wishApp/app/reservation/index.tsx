@@ -1,11 +1,6 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet , View, Text, TouchableOpacity, } from 'react-native';
+import { StyleSheet , View, Text, TouchableOpacity, } from 'react-native';
 import { Stack, router } from "expo-router";
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
 export default function EntranceScreen() {
     return (

@@ -7,14 +7,15 @@ export default function WishlistScreen() {
     const [wishlist, setWishlist] = useState<any>(null);
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
         try {
             const token = await storageSingleton.getItem("token");
-            if (!token) {
-            Alert.alert("Erreur", "Token manquant. Veuillez vous reconnecter.");
-            return;
+                if (!token) {
+                    setErrorMessage("Session invalide, veuillez vous reconnecter.");
+                return;
             }
 
             // Infos wishlist
@@ -34,7 +35,7 @@ export default function WishlistScreen() {
             setItems(dataWishes);
         } catch (err) {
             console.error(err);
-            Alert.alert("Erreur", "Impossible de charger les données.");
+            setErrorMessage("Impossible de charger les données.");
         } finally {
             setLoading(false);
         }
@@ -73,7 +74,7 @@ export default function WishlistScreen() {
 
                     // si pas encore sélectionné → vérifier la limite de 3
                     if (alreadySelected >= 3) {
-                        Alert.alert("Limite atteinte", "Vous ne pouvez réserver que 3 cadeaux.");
+                        setErrorMessage( "Vous ne pouvez réserver que 3 cadeaux.");
                         return item; // pas de changement
                     }
 
@@ -97,7 +98,7 @@ export default function WishlistScreen() {
                 <TouchableOpacity
                     style={[
                     styles.button,
-                    item.status !== "available" && styles.buttonReserved,
+                        item.status !== "available" && styles.buttonReserved,
                     ]}
                     onPress={() => toggleReserve(item._id)}
                 >
@@ -115,9 +116,8 @@ export default function WishlistScreen() {
             const guestId = await storageSingleton.getItem("guest_id");
             const userId = await storageSingleton.getItem("user_id");
 
-            console.log("Role:", role);
             if (!token || !role) {
-                Alert.alert("Erreur", "Session invalide, veuillez vous reconnecter.");
+                setErrorMessage("Session invalide, veuillez vous reconnecter.");
             return;
             }
             const selectedWishes = items
@@ -125,7 +125,7 @@ export default function WishlistScreen() {
             .map((item) => item._id);
 
             if (selectedWishes.length === 0) {
-                Alert.alert("Aucun choix", "Veuillez sélectionner au moins un cadeau.");
+                setErrorMessage("Veuillez sélectionner au moins un cadeau.");
                 return;
             }
 
@@ -156,11 +156,10 @@ export default function WishlistScreen() {
                 throw new Error(`Erreur serveur: ${res.status}`);
             }
 
-            const data = await res.json();
             router.replace("/reservation/succes");
         } catch (err) {
             console.error(err);
-            Alert.alert("Erreur", "Impossible d’enregistrer votre choix.");
+            setErrorMessage("Impossible d’enregistrer votre choix.");
         }
     };
 
@@ -182,6 +181,10 @@ export default function WishlistScreen() {
             </View>
         </View>
         <Text style={styles.header}>Souhaits</Text>
+
+        {errorMessage && (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+        )}
 
         {/* Liste scrollable */}
         <FlatList
@@ -317,4 +320,11 @@ export default function WishlistScreen() {
         fontSize: 14,
         color: "#555",
     },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
+    }
 });

@@ -9,6 +9,7 @@ export default function LoginScreen() {
     const [token, setToken] = useState<string | null>(null); // État local pour gérer le token
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -25,7 +26,7 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+            setErrorMessage("Veuillez remplir tous les champs.");
             return;
         }
 
@@ -50,10 +51,10 @@ export default function LoginScreen() {
                 setToken(data.token);
                 router.push("/reservation/wishlist"); // redirection vers la wishlist
             } else {
-                Alert.alert("Erreur", data.message || "Échec de la connexion.");
+                setErrorMessage( "Échec de la connexion.");
             }
         } catch (error) {
-            Alert.alert("Erreur", "Problème de connexion au serveur.");
+            setErrorMessage("Problème de connexion au serveur.");
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -79,6 +80,10 @@ export default function LoginScreen() {
             <Text style={styles.sousTitle}>
                 Connectez-vous pour découvrir toutes nos fonctionnalités.
             </Text>
+
+            {errorMessage && (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
 
             {!token ? (
                 <>
@@ -169,6 +174,13 @@ export default function LoginScreen() {
         fontWeight: 'bold',
         color: "#6C2DC7",
         marginBottom: 20,
+    },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
     },
     sousTitle: {
         fontFamily: 'Poppins',
