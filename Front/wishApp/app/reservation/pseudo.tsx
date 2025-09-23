@@ -6,10 +6,11 @@ import { storageSingleton } from '../../storageSingleton';
 
 export default function PseudoScreen() {
     const [username, setUsername] = useState("");
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const handleContinue = async () => {
         if (!username.trim()) {
-            Alert.alert("Erreur", "Veuillez entrer un pseudo !");
+            setErrorMessage("Veuillez entrer un pseudo !");
             return;
         }
 
@@ -25,19 +26,21 @@ export default function PseudoScreen() {
             });
 
             const data = await response.json();
-            console.log("Réponse backend:", data);
-
             if (response.ok) {
                 await storageSingleton.setItem("token", data.token);
-
-                Alert.alert("Succès", "Pseudo enregistré !");
+                await storageSingleton.setItem("role", data.role); 
+                if (data.guest) {
+                    await storageSingleton.setItem("guest_id", data.guest._id);
+                } else if (data.user) {
+                    await storageSingleton.setItem("user_id", data.user._id);
+                }
                 router.push("/reservation/wishlist"); 
             } else {
-                Alert.alert("Erreur", data.message || "Impossible d’ajouter le pseudo.");
+                setErrorMessage("Impossible d’ajouter ce pseudo.");
             }
         } catch (error) {
             console.error(error);
-            Alert.alert("Erreur", "Problème de connexion au serveur.");
+            setErrorMessage("Problème de connexion au serveur.");
         }
     };
 
@@ -55,6 +58,10 @@ export default function PseudoScreen() {
 
         {/* Titre */}
         <Text style={styles.title}>Veuillez saisir votre pseudo</Text>
+
+        {errorMessage && (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+        )}
 
         {/* Input */}
         <TextInput
@@ -85,6 +92,13 @@ const styles = StyleSheet.create({
         width: 250,
         height: 250,
         paddingTop:400
+    },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
     },
     title: {
         fontSize: 28,

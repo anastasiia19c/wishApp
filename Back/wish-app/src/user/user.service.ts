@@ -41,7 +41,6 @@ export class UserService {
   }
 
   async login(email: string, password: string) {
-    // Ici tu dois vérifier dans ta DB si l’utilisateur existe
     const user = await this.findByEmail(email);
 
     if (!user) {
@@ -55,13 +54,33 @@ export class UserService {
     }
 
     // Générer un token JWT
-    const payload = { email: user.email };
+    const payload = { role: "owner" , email: user.email, user_id: user._id.toString() };
     const token = await this.jwtService.signAsync(payload);
 
-    return { token };
+    return { token, role: 'owner',user: {id: user._id, email: user.email} };
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async loginAsGuest(email: string, password: string) {
+    const user = await this.findByEmail(email);
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    // Vérifier mot de passe (hashé ou pas)
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Mot de passe incorrect');
+    }
+
+    // Générer un token JWT
+    const payload = { role: "guest" , email: user.email, user_id: user._id.toString() };
+    const token = await this.jwtService.signAsync(payload);
+
+    return { token, role: 'guest',user: {id: user._id, email: user.email} };
+  }
+
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 }
