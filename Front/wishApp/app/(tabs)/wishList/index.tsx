@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, Image, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
@@ -16,6 +16,61 @@ export default function WishListScreen() {
     closeDate: "",
     coverImage: "",
   });
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const fetchWishlists = async () => {
+      try {
+        const user_id = await storageSingleton.getItem("id");
+        const token = await storageSingleton.getItem("token");
+
+        const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          setErrorMessage(err?.message || "Impossible de charger les wishlists.");
+          return;
+        }
+
+        const data = await res.json();
+        setWishlists(data);
+      } catch (error) {
+        console.error("Erreur de récupération :", error);
+        setErrorMessage("Erreur réseau lors du chargement des wishlists.");
+      }
+    };
+
+    fetchWishlists();
+  }, []);
+
+  const fetchWishlists = async () => {
+    try {
+      setRefreshing(true);
+      const user_id = await storageSingleton.getItem("id");
+      const token = await storageSingleton.getItem("token");
+
+      const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        throw new Error("Erreur serveur");
+      }
+
+      const data = await res.json();
+      setWishlists(data);
+    } catch (err) {
+      console.error("Erreur fetch:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWishlists();
+  }, []);
 
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [showClosePicker, setShowClosePicker] = useState(false);
@@ -93,12 +148,16 @@ export default function WishListScreen() {
   const renderItem = ({ item }: any) => (
     <View style={styles.card}>
       <Image
-        source={item.image ? { uri: item.image } : require("../../../assets/images/listDefault.jpg")}
+        source={item.coverImage ? { uri: item.coverImage } : require("../../../assets/images/listDefault.jpg")}
         style={styles.cardImage}
       />
       <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardText}>Date : {item.eventDate || "Non définie"}</Text>
-      <Text style={styles.cardText}>{item.giftsCount} cadeaux</Text>
+      <Text style={styles.cardText}>
+        Date : {item.dateEvent ? new Date(item.dateEvent).toLocaleDateString() : "Non définie"}
+      </Text>
+      <Text style={styles.cardText}>
+        {item.wishes?.length || 0} cadeaux
+      </Text>
     </View>
   );
 
@@ -116,9 +175,11 @@ export default function WishListScreen() {
         <><FlatList
             data={wishlists}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
             numColumns={2}
-            contentContainerStyle={styles.list} />
+            contentContainerStyle={styles.list} 
+            refreshing={refreshing}
+            onRefresh={fetchWishlists}/>
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton1}>
               <Text style={styles.plus}>+</Text>
             </TouchableOpacity></>
@@ -286,13 +347,17 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   addButton1: {
-    backgroundColor: "#fdb5f4ff",
+    backgroundColor: "rgba(253, 181, 244, 0.7)", 
     borderRadius: 50,
     width: 70,
     height: 70,
     alignItems: "center",
     justifyContent: "center",
     elevation: 5,
+    margin: 5,
+    position: "absolute",
+    bottom: 10,
+    right: 10
   },
   plus: { fontSize: 70, color: "#A64DFF", fontWeight: "bold" },
   list: { padding: 15 },
