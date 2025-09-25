@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, Image } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, Image, Platform } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as ImagePicker from "expo-image-picker";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function WishListScreen() {
   const [wishlists, setWishlists] = useState<any[]>([]);
@@ -10,7 +12,30 @@ export default function WishListScreen() {
     description: "",
     eventDate: "",
     closeDate: "",
+    coverImage: "",
   });
+
+  const [showEventPicker, setShowEventPicker] = useState(false);
+  const [showClosePicker, setShowClosePicker] = useState(false);
+  const formatDate = (date: Date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setForm({ ...form, coverImage: result.assets[0].uri });
+    }
+  };
 
   const handleCreate = () => {
     if (!form.title) return;
@@ -26,7 +51,7 @@ export default function WishListScreen() {
     };
 
     setWishlists((prev) => [...prev, newList]);
-    setForm({ title: "", description: "", eventDate: "", closeDate: "" });
+    setForm({ title: "", description: "", eventDate: "", closeDate: "" , coverImage: ""});
     setModalVisible(false);
   };
 
@@ -68,39 +93,85 @@ export default function WishListScreen() {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <MaterialCommunityIcons name="close" size={25} color={"#000000ff"} style={{alignSelf: "flex-end", paddingBottom: 10}}/>
+            </TouchableOpacity>
             <Text style={styles.modalTitle}>Ajouter un wish list</Text>
             <TextInput
               style={styles.input}
-              placeholder="Nom"
+              placeholder="Nom*"
               value={form.title}
               onChangeText={(text) => setForm({ ...form, title: text })}
             />
             <TextInput
-              style={styles.input}
+              editable
+              multiline
+              style={styles.description}
               placeholder="Description"
               value={form.description}
               onChangeText={(text) => setForm({ ...form, description: text })}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Date de l'événement (JJ/MM/AAAA)"
-              value={form.eventDate}
-              onChangeText={(text) => setForm({ ...form, eventDate: text })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Date de fermeture (JJ/MM/AAAA)"
-              value={form.closeDate}
-              onChangeText={(text) => setForm({ ...form, closeDate: text })}
-            />
+            {/* Sélecteur pour Date de l'événement */}
+            <TouchableOpacity onPress={() => setShowEventPicker(true)}>
+              <TextInput
+                style={styles.dateEvent}
+                placeholder="Date de l'événement*"
+                value={form.eventDate}
+                editable={false}
+                pointerEvents="none"
+              />
+            </TouchableOpacity>
+            {showEventPicker && (
+              <DateTimePicker
+                value={form.eventDate ? new Date(form.eventDate.split("/").reverse().join("-")) : new Date()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(event, selectedDate) => {
+                  setShowEventPicker(false);
+                  if (selectedDate) {
+                    setForm({ ...form, eventDate: formatDate(selectedDate) });
+                  }
+                }}
+              />
+            )}
+            <TouchableOpacity onPress={() => setShowClosePicker(true)}>
+              <TextInput
+                style={styles.dateClosed}
+                placeholder="Date de fermeture*"
+                value={form.closeDate}
+                editable={false}
+                pointerEvents="none"
+              />
+            </TouchableOpacity>
+            {showClosePicker && (
+              <DateTimePicker
+                value={form.closeDate ? new Date(form.closeDate.split("/").reverse().join("-")) : new Date()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(event, selectedDate) => {
+                  setShowClosePicker(false);
+                  if (selectedDate) {
+                    setForm({ ...form, closeDate: formatDate(selectedDate) });
+                  }
+                }}
+              />
+            )}
+            {/* Image */}
+            <TouchableOpacity
+              style={styles.image}
+              onPress={pickImage}
+            >
+              <MaterialCommunityIcons name="file-image-plus-outline" size={25} color={"#000000ff"}/>
+            </TouchableOpacity>
+
+            {form.coverImage ? (
+              <Image source={{ uri: form.coverImage }} style={styles.coverImage} />
+            ) : null}
 
             <TouchableOpacity style={styles.createButton} onPress={handleCreate}>
               <Text style={styles.createButtonText}>CRÉER</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={{ marginTop: 10, color: "red" }}>Fermer</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -190,14 +261,48 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingVertical: 5,
   },
+  description:{
+    borderBottomWidth: 1,
+    borderBottomColor: "#A64DFF",
+    marginBottom: 15,
+    paddingVertical: 5,
+    height: 50
+  },
   createButton: {
     backgroundColor: "#6C2DC7",
     padding: 12,
     borderRadius: 25,
+    alignSelf: "center",
     alignItems: "center",
+    width: "50%"
   },
   createButtonText: {
     color: "white",
     fontWeight: "bold",
   },
+  dateEvent: {
+    borderBottomWidth: 1, 
+    padding: 10, 
+    borderColor: "#A64DFF",
+    marginBottom: 10 
+  },
+  dateClosed:{
+    borderBottomWidth: 1,
+    padding: 10,
+    borderColor: "#A64DFF",
+  },
+  image:{
+    marginTop: 10,
+    padding: 15, 
+    alignItems: "center", 
+    marginBottom: 10
+  },
+  coverImage: {
+    width: 100, 
+    height: 100, 
+    borderRadius: 10, 
+    marginBottom: 10,
+    alignSelf: "center", 
+    justifyContent: "center"
+  }
 });
