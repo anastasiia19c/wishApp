@@ -72,7 +72,7 @@ export default function WishListScreen() {
 
       {wishlists.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Crée ton premier wish-list</Text>
+          <Text style={styles.emptyText}>Crée ta première wishlist</Text>
           <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
             <Text style={styles.plus}>+</Text>
           </TouchableOpacity>
@@ -96,7 +96,7 @@ export default function WishListScreen() {
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <MaterialCommunityIcons name="close" size={25} color={"#000000ff"} style={{alignSelf: "flex-end", paddingBottom: 10}}/>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Ajouter un wish list</Text>
+            <Text style={styles.modalTitle}>Ajouter une wishlist</Text>
             <TextInput
               style={styles.input}
               placeholder="Nom*"
