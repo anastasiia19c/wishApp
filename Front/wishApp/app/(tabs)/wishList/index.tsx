@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, I
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { storageSingleton } from "../../../storageSingleton";
 
 export default function WishListScreen() {
   const [wishlists, setWishlists] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -30,29 +32,62 @@ export default function WishListScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.7,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setForm({ ...form, coverImage: result.assets[0].uri });
+      setForm({ ...form, coverImage: `data:image/jpeg;base64,${result.assets[0].base64}`, });
     }
   };
 
-  const handleCreate = () => {
-    if (!form.title) return;
+  const toISO = (dateString: string) => {
+    if (!dateString) return null;
+    const [day, month, year] = dateString.split("/");
+    return new Date(`${year}-${month}-${day}T00:00:00.000Z`).toISOString();
+  };
 
-    const newList = {
-      id: Date.now().toString(),
-      title: form.title,
-      description: form.description,
-      eventDate: form.eventDate,
-      closeDate: form.closeDate,
-      giftsCount: 0,
-      image: null,
-    };
+  const handleCreate = async () => {
+    try {
+      const user_id = await storageSingleton.getItem("id");
+      const token = await storageSingleton.getItem("token");
 
-    setWishlists((prev) => [...prev, newList]);
-    setForm({ title: "", description: "", eventDate: "", closeDate: "" , coverImage: ""});
-    setModalVisible(false);
+      if (!form.title) {
+        setErrorMessage("Le titre est obligatoire.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:4000/wishlist/add", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id,
+          title: form.title,
+          description: form.description,
+          dateEvent: toISO(form.eventDate),
+          dateClosed: toISO(form.closeDate),
+          coverImage: form.coverImage,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        setErrorMessage(errorData?.message || "Une erreur est survenue lors de la création.");
+        return;
+      }
+
+      const data = await response.json();
+      setWishlists((prev) => [...prev, data]);
+      setForm({ title: "", description: "", eventDate: "", closeDate: "", coverImage: "" });
+      setErrorMessage(null);
+      setModalVisible(false);
+
+    } catch (err) {
+      console.error("Erreur réseau:", err);
+      setErrorMessage("Impossible de contacter le serveur. Vérifie ta connexion.");
+    }
   };
 
   const renderItem = ({ item }: any) => (
@@ -97,6 +132,9 @@ export default function WishListScreen() {
               <MaterialCommunityIcons name="close" size={25} color={"#000000ff"} style={{alignSelf: "flex-end", paddingBottom: 10}}/>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Ajouter une wishlist</Text>
+            {errorMessage && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
             <TextInput
               style={styles.input}
               placeholder="Nom*"
@@ -112,49 +150,86 @@ export default function WishListScreen() {
               onChangeText={(text) => setForm({ ...form, description: text })}
             />
             {/* Sélecteur pour Date de l'événement */}
-            <TouchableOpacity onPress={() => setShowEventPicker(true)}>
-              <TextInput
+            {Platform.OS === "web" ? (
+              <input
+                type="date"
+                value={form.eventDate ? form.eventDate.split("/").reverse().join("-") : ""}
+                onChange={(e) => {
+                  const [year, month, day] = e.target.value.split("-");
+                  setForm({ ...form, eventDate: `${day}/${month}/${year}` });
+                }}
                 style={styles.dateEvent}
-                placeholder="Date de l'événement*"
-                value={form.eventDate}
-                editable={false}
-                pointerEvents="none"
               />
-            </TouchableOpacity>
-            {showEventPicker && (
-              <DateTimePicker
-                value={form.eventDate ? new Date(form.eventDate.split("/").reverse().join("-")) : new Date()}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, selectedDate) => {
-                  setShowEventPicker(false);
-                  if (selectedDate) {
-                    setForm({ ...form, eventDate: formatDate(selectedDate) });
-                  }
-                }}
-              />
+            ) : (
+              <>
+                <TouchableOpacity onPress={() => setShowEventPicker(true)}>
+                  <TextInput
+                    style={styles.dateEvent}
+                    placeholder="Date de l'événement*"
+                    value={form.eventDate}
+                    editable={false}
+                    pointerEvents="none"
+                  />
+                </TouchableOpacity>
+                {showEventPicker && (
+                  <DateTimePicker
+                    value={
+                      form.eventDate
+                        ? new Date(form.eventDate.split("/").reverse().join("-"))
+                        : new Date()
+                    }
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={(event, selectedDate) => {
+                      setShowEventPicker(false);
+                      if (selectedDate) {
+                        setForm({ ...form, eventDate: formatDate(selectedDate) });
+                      }
+                    }}
+                  />
+                )}
+              </>
             )}
-            <TouchableOpacity onPress={() => setShowClosePicker(true)}>
-              <TextInput
-                style={styles.dateClosed}
-                placeholder="Date de fermeture*"
-                value={form.closeDate}
-                editable={false}
-                pointerEvents="none"
-              />
-            </TouchableOpacity>
-            {showClosePicker && (
-              <DateTimePicker
-                value={form.closeDate ? new Date(form.closeDate.split("/").reverse().join("-")) : new Date()}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, selectedDate) => {
-                  setShowClosePicker(false);
-                  if (selectedDate) {
-                    setForm({ ...form, closeDate: formatDate(selectedDate) });
-                  }
+            {/* Sélecteur Date de fermeture */}
+            {Platform.OS === "web" ? (
+              <input
+                type="date"
+                value={form.closeDate ? form.closeDate.split("/").reverse().join("-") : ""}
+                onChange={(e) => {
+                  const [year, month, day] = e.target.value.split("-");
+                  setForm({ ...form, closeDate: `${day}/${month}/${year}` });
                 }}
+                style={styles.dateClosed}
               />
+            ) : (
+              <>
+                <TouchableOpacity onPress={() => setShowClosePicker(true)}>
+                  <TextInput
+                    style={styles.dateClosed}
+                    placeholder="Date de fermeture*"
+                    value={form.closeDate}
+                    editable={false}
+                    pointerEvents="none"
+                  />
+                </TouchableOpacity>
+                {showClosePicker && (
+                  <DateTimePicker
+                    value={
+                      form.closeDate
+                        ? new Date(form.closeDate.split("/").reverse().join("-"))
+                        : new Date()
+                    }
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={(event, selectedDate) => {
+                      setShowClosePicker(false);
+                      if (selectedDate) {
+                        setForm({ ...form, closeDate: formatDate(selectedDate) });
+                      }
+                    }}
+                  />
+                )}
+              </>
             )}
             {/* Image */}
             <TouchableOpacity
@@ -304,5 +379,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "center", 
     justifyContent: "center"
-  }
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 10,
+    textAlign: "center",
+  },
 });
