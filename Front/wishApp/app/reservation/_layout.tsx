@@ -11,18 +11,15 @@ export default function ReservationLayout() {
     useEffect(() => {
         const checkRole = async () => {
         const role = await storageSingleton.getItem("role");
-        if (!role) {
-            setAllowed(false);
-            router.replace("/");
-        }
-
-        if (role === "guest") {
+        if (!role) {                                  // à rétirer lorsqu'on aura géré le lien de partage de wishlist
+            setAllowed(true);
+        } else if (role === "guest") {
             setAllowed(true); // OK, accès autorisé
         } else {
             setAllowed(false);
             router.replace("/"); // redirige owner ailleurs
         }
-        setLoading(false);
+        setLoading(false); 
         };
         checkRole();
     }, []);
