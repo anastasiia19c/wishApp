@@ -51,7 +51,7 @@ export class WishlistService {
       throw new BadRequestException(`Invalid user_id format`);
     }
 
-    const wishlists = await this.wishlistModel.find({ user_id: userId }).exec();
+    const wishlists = await this.wishlistModel.find({ user_id: new Types.ObjectId(userId) }).exec();
     if (!wishlists || wishlists.length === 0) {
       throw new NotFoundException(`No wishlists found for user ${userId}`);
     }
