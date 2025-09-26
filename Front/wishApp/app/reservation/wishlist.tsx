@@ -13,6 +13,7 @@ export default function WishlistScreen() {
         const fetchData = async () => {
         try {
             const token = await storageSingleton.getItem("token");
+            const currentUserId = await storageSingleton.getItem("user_id");
                 if (!token) {
                     setErrorMessage("Session invalide, veuillez vous reconnecter.");
                 return;
@@ -20,15 +21,20 @@ export default function WishlistScreen() {
 
             // Infos wishlist
             const resWishlist = await fetch(
-                "http://localhost:4000/wishlist/68cd56a70b14017858596fd6/68cd567f0b14017858596fd1",
+                "http://localhost:4000/wishlist/68d647e02756750fcf6d250d/68d647b12756750fcf6d2508",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishlist = await resWishlist.json();
+            if (currentUserId && dataWishlist.user_id === currentUserId) {
+                setErrorMessage("Vous êtes le propriétaire de cette liste. Vous ne pouvez pas réserver vos propres cadeaux.");
+                setLoading(false);
+                return;
+            }
             setWishlist(dataWishlist);
 
             // Souhaits liés
             const resWishes = await fetch(
-                "http://localhost:4000/wish/wishlist/68cd56a70b14017858596fd6/available",
+                "http://localhost:4000/wish/wishlist/68d647e02756750fcf6d250d/available",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishes = await resWishes.json();
@@ -158,7 +164,6 @@ export default function WishlistScreen() {
 
             await storageSingleton.removeItem("token");
             await storageSingleton.removeItem("role");
-            await storageSingleton.removeItem("guest_id");
             await storageSingleton.removeItem("user_id");
 
             router.replace("/reservation/succes");

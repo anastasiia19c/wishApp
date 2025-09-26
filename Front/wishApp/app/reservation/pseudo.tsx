@@ -15,6 +15,11 @@ export default function PseudoScreen() {
         }
 
         try {
+            const existingGuestId = await storageSingleton.getItem("guest_id");
+            if (existingGuestId) {
+                setErrorMessage("Vous avez déjà participé, vous ne pouvez pas créer un nouveau pseudo.");
+                return;
+            }
             const response = await fetch("http://localhost:4000/guest/add", {
                 method: "POST",
                 headers: {
@@ -29,11 +34,7 @@ export default function PseudoScreen() {
             if (response.ok) {
                 await storageSingleton.setItem("token", data.token);
                 await storageSingleton.setItem("role", data.role); 
-                if (data.guest) {
-                    await storageSingleton.setItem("guest_id", data.guest._id);
-                } else if (data.user) {
-                    await storageSingleton.setItem("user_id", data.user._id);
-                }
+                await storageSingleton.setItem("guest_id", data.guest._id);
                 router.push("/reservation/wishlist"); 
             } else {
                 setErrorMessage("Impossible d’ajouter ce pseudo.");

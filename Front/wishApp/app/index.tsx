@@ -62,6 +62,9 @@ export default function LoginScreen() {
 
     const handleLogout = async () => {
         await storageSingleton.removeItem("token");
+        await storageSingleton.removeItem("role");
+        await storageSingleton.removeItem("guest_id");
+        await storageSingleton.removeItem("user_id");
         setToken(null);
         setErrorMessage( "Vous avez été déconnecté.");
     };

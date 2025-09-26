@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { storageSingleton } from '../../storageSingleton'; // Import du singleton
+import a from '@ant-design/react-native/lib/modal/alert';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -63,8 +64,10 @@ export default function LoginScreen() {
 
     const handleLogout = async () => {
         await storageSingleton.removeItem("token");
+        await storageSingleton.removeItem("role");
+        await storageSingleton.removeItem("user_id");
+        await storageSingleton.removeItem("guest_id");
         setToken(null);
-        Alert.alert("Déconnexion réussie", "Vous avez été déconnecté.");
     };
 
     return (
