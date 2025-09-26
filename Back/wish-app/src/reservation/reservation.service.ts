@@ -23,7 +23,7 @@ export class ReservationService {
     private wishlistModel: Model<WishlistDocument>
   ) {}
 
-  async create(dto: CreateReservationDto): Promise<Reservation> {
+  async create(dto: CreateReservationDto): Promise<ReservationDocument> {
     // 1. Vérifier user_id ou guest_id
     if (dto.user_id && dto.guest_id) {
       throw new BadRequestException(

@@ -13,6 +13,7 @@ export default function WishlistScreen() {
         const fetchData = async () => {
         try {
             const token = await storageSingleton.getItem("token");
+            const currentUserId = await storageSingleton.getItem("user_id");
                 if (!token) {
                     setErrorMessage("Session invalide, veuillez vous reconnecter.");
                 return;
@@ -24,6 +25,11 @@ export default function WishlistScreen() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishlist = await resWishlist.json();
+            if (currentUserId && dataWishlist.user_id === currentUserId) {
+                setErrorMessage("Vous êtes le propriétaire de cette liste. Vous ne pouvez pas réserver vos propres cadeaux.");
+                setLoading(false);
+                return;
+            }
             setWishlist(dataWishlist);
 
             // Souhaits liés

@@ -6,9 +6,12 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 
-  @Post('add') // POST /reservation/add
+  @Post('add')
   async create(@Body() createReservationDto: CreateReservationDto) {
-    return this.reservationService.create(createReservationDto);
+    const reservation = await this.reservationService.create(createReservationDto);
+    return {
+      id: reservation._id,
+    };
   }
 
   @Get() // GET /reservation
