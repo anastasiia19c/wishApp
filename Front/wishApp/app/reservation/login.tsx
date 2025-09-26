@@ -1,46 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import { storageSingleton } from '../../storageSingleton'; // Import du singleton
+import a from '@ant-design/react-native/lib/modal/alert';
 
-export default function RegisterScreen() {
+export default function LoginScreen() {
     const [email, setEmail] = useState('');
-    const [nom, setNom] = useState('');
     const [password, setPassword] = useState('');
-    const [token] = useState<string | null>(null);
+    const [token, setToken] = useState<string | null>(null); // État local pour gérer le token
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const handleRegister = async () => {
-        if (!nom || !email || !password) {
-        setErrorMessage('Veuillez remplir tous les champs.');
-        return;
+
+    useEffect(() => {
+        const checkAuth = async () => {
+        const token = await storageSingleton.getItem("token");
+        if (token) {
+            router.replace("/(tabs)/wishList"); 
+        }
+        setIsLoading(false);
+        };
+        checkAuth();
+    }, []);
+
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            setErrorMessage("Veuillez remplir tous les champs.");
+            return;
         }
 
         setIsLoading(true);
 
         try {
-        const response = await fetch('http://localhost:4000/user/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            name: nom,
-            email,
-            password,
-            }),
-        });
+            const response = await fetch("http://localhost:4000/user/login-as-guest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json"},
+                body: JSON.stringify({ email, password }),
+            });
 
-        if (response.ok) {
-            router.replace('/');
-        } else {
-            setErrorMessage('Impossible de créer un compte.');
-        }
+            const data = await response.json();
+
+            if (response.status === 201) {
+                Alert.alert("Succès", "Vous êtes connecté.");
+                await storageSingleton.setItem("token", data.token); // sauvegarde du token
+                await storageSingleton.setItem("role", data.role); // sauvegarde du role
+                if (data.user && data.user.id) {
+                    await storageSingleton.setItem("user_id", data.user.id);
+                }
+                setToken(data.token);
+                router.push("/reservation/wishlist"); // redirection vers la wishlist
+            } else {
+                setErrorMessage( "Échec de la connexion.");
+            }
         } catch (error) {
-        console.error(error);
-        setErrorMessage('Problème de connexion au serveur.');
+            setErrorMessage("Problème de connexion au serveur.");
+            console.error(error);
         } finally {
-        setIsLoading(false);
+            setIsLoading(false);
         }
+    };
+
+    const handleLogout = async () => {
+        await storageSingleton.removeItem("token");
+        await storageSingleton.removeItem("role");
+        await storageSingleton.removeItem("user_id");
+        await storageSingleton.removeItem("guest_id");
+        setToken(null);
     };
 
     return (
@@ -48,31 +75,21 @@ export default function RegisterScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.container}>
             <View style={styles.logoContainer}>
-            <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+            <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
             </View>
 
             <View style={styles.formContainer}>
-            <Text style={styles.title}>Créer un compte</Text>
-            <View style={styles.accountLinkContainer}>
-                <TouchableOpacity onPress={() => router.replace('./')}>
-                    <Text style={styles.creerCompte}>J'ai déjà un compte</Text>
-                </TouchableOpacity>
-            </View>
+            <Text style={styles.title}>Login</Text>
+            <Text style={styles.sousTitle}>
+                Connectez-vous pour découvrir toutes nos fonctionnalités.
+            </Text>
+
             {errorMessage && (
-                <Text style={styles.errorText}>{errorMessage}</Text>
+            <Text style={styles.errorText}>{errorMessage}</Text>
             )}
+
             {!token ? (
                 <>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Nom*</Text>
-                    <TextInput
-                    style={styles.input}
-                    placeholder="Alice Cooper"
-                    placeholderTextColor="#A9A9A9"
-                    value={nom}
-                    onChangeText={setNom}
-                    />
-                </View>
                 <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>E-mail*</Text>
                     <TextInput
@@ -83,6 +100,7 @@ export default function RegisterScreen() {
                     onChangeText={setEmail}
                     />
                 </View>
+
                 <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Mot de passe*</Text>
                     <TextInput
@@ -94,18 +112,19 @@ export default function RegisterScreen() {
                     onChangeText={setPassword}
                     />
                 </View>
-                <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
+
+                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                     <Text style={styles.loginButtonText}>
-                    {isLoading ? 'Chargement...' : 'Créer un compte'}
+                        {isLoading ? "Chargement..." : "Se connecter"}
                     </Text>
                 </TouchableOpacity>
                 </>
             ) : (
                 <>
                 <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
-                <TouchableOpacity style={styles.loginButton} >
-                    <Text style={styles.loginButtonText}>Se déconnecter</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogout}>
+                        <Text style={styles.loginButtonText}>Se déconnecter</Text>
+                    </TouchableOpacity>
                 </>
             )}
             </View>
@@ -157,6 +176,21 @@ export default function RegisterScreen() {
         fontFamily: 'Poppins',
         fontWeight: 'bold',
         color: "#6C2DC7",
+        marginBottom: 20,
+    },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
+    },
+    sousTitle: {
+        fontFamily: 'Poppins',
+        fontSize: 15,
+        color: '#000',
+        textAlign: 'center',
+        marginBottom: 20,
     },
     input: {
         width: '100%',
@@ -168,6 +202,14 @@ export default function RegisterScreen() {
         borderWidth: 1,
         borderColor: '#ddd',
         fontFamily: "Poppins",
+    },
+    forgotPassword: {
+        color: '#000',
+        fontSize: 10,
+        marginBottom: 20,
+        fontFamily: 'Poppins',
+        textDecorationLine: 'underline',
+        textDecorationColor: '#000',
     },
     creerCompte: {
         color: '#000',
@@ -203,11 +245,4 @@ export default function RegisterScreen() {
         paddingVertical: 20,
         backgroundColor: 'white',
     },
-    errorText: {
-        color: "red",
-        fontSize: 14,
-        fontWeight: "500",
-        marginBottom: 10,
-        textAlign: "center",
-    }
 });

@@ -22,6 +22,11 @@ export class WishlistController {
     return this.wishlistService.findOne(id);
   }
 
+  @Get('user/:userId') // GET /wishlist/user/:userId
+  async findByUser(@Param('userId') userId: string) {
+    return this.wishlistService.findByUser(userId);
+  }
+
   @Get(':id/:userId')
   async findOneByUser(@Param('id') id: string, @Param('userId') userId: string) {
     return this.wishlistService.findOneByUser(id, userId);

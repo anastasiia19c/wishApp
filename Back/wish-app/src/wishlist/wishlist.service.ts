@@ -46,6 +46,19 @@ export class WishlistService {
     return this.wishlistModel.findById(id).exec();
   }
 
+  async findByUser(userId: string): Promise<Wishlist[]> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException(`Invalid user_id format`);
+    }
+
+    const wishlists = await this.wishlistModel.find({ user_id: new Types.ObjectId(userId) }).exec();
+    if (!wishlists || wishlists.length === 0) {
+      throw new NotFoundException(`No wishlists found for user ${userId}`);
+    }
+
+    return wishlists;
+  }
+
   async findOneByUser(id: string, userId: string): Promise<Wishlist> {
     const wishlist = await this.wishlistModel.findOne({
       _id: new Types.ObjectId(id),

@@ -1,54 +1,184 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from "react-native";
-import { Stack } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Alert,ActivityIndicator } from "react-native";
+import { Stack, router } from "expo-router";
+import { storageSingleton } from "../../storageSingleton";
 
 export default function WishlistScreen() {
-    const [items, setItems] = useState([
-        { id: "1", name: "Nom 1", description: "Description 1", reserved: false },
-        { id: "2", name: "Nom 2", description: "Description 2", reserved: false },
-        { id: "3", name: "Nom 3", lien: "lien", description: "Description 3", reserved: true },
-    ]);
+    const [wishlist, setWishlist] = useState<any>(null);
+    const [items, setItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+        try {
+            const token = await storageSingleton.getItem("token");
+            const currentUserId = await storageSingleton.getItem("user_id");
+                if (!token) {
+                    setErrorMessage("Session invalide, veuillez vous reconnecter.");
+                return;
+            }
+
+            // Infos wishlist
+            const resWishlist = await fetch(
+                "http://localhost:4000/wishlist/68d647e02756750fcf6d250d/68d647b12756750fcf6d2508",
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const dataWishlist = await resWishlist.json();
+            if (currentUserId && dataWishlist.user_id === currentUserId) {
+                setErrorMessage("Vous êtes le propriétaire de cette liste. Vous ne pouvez pas réserver vos propres cadeaux.");
+                setLoading(false);
+                return;
+            }
+            setWishlist(dataWishlist);
+
+            // Souhaits liés
+            const resWishes = await fetch(
+                "http://localhost:4000/wish/wishlist/68d647e02756750fcf6d250d/available",
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const dataWishes = await resWishes.json();
+            setItems(dataWishes);
+        } catch (err) {
+            console.error(err);
+            setErrorMessage("Impossible de charger les données.");
+        } finally {
+            setLoading(false);
+        }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+        <View style={styles.center}>
+            <ActivityIndicator size="large" color="#6C2DC7" />
+        </View>
+        );
+    }
+
+    if (!wishlist) {
+        return (
+        <View style={styles.center}>
+            <Text>Aucune wishlist trouvée.</Text>
+        </View>
+        );
+    }
 
     const toggleReserve = (id: string) => {
-        setItems((prev) =>
-        prev.map((item) =>
-            item.id === id ? { ...item, reserved: !item.reserved } : item
-        )
-        );
+        setItems((prev) => {
+            // compter combien d'items sont déjà "wanted"
+            const alreadySelected = prev.filter((item) => item.status === "wanted").length;
+
+            return prev.map((item) => {
+                if (item._id === id) {
+                    // si déjà sélectionné → on le désélectionne
+                    if (item.status === "wanted") {
+                        return { ...item, status: "available" };
+                    }
+
+                    // si pas encore sélectionné → vérifier la limite de 3
+                    if (alreadySelected >= 3) {
+                        setErrorMessage( "Vous ne pouvez réserver que 3 cadeaux.");
+                        return item; // pas de changement
+                    }
+
+                    return { ...item, status: "wanted" };
+                }
+            return item;
+            });
+        });
     };
 
     const renderItem = ({ item }: any) => (
         <View style={styles.card}>
-        {/* Image à gauche */}
-        <Image
-            source={require("../../assets/images/giftDefault.jpg")}
-            style={styles.image}
-        />
-
-        {/* Texte + bouton à droite */}
-        <View style={styles.content}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.description}>{item.description}</Text>
-            {item.lien && <Text style={styles.lien}>{item.lien}</Text>}
-
-            <TouchableOpacity
-            style={[styles.button, item.reserved && styles.buttonReserved]}
-            onPress={() => toggleReserve(item.id)}
-            >
-            <Text style={styles.buttonText}>
-                {item.reserved ? "RÉSERVÉ" : "RÉSERVER"}
-            </Text>
-            </TouchableOpacity>
-        </View>
+            <Image
+                source={ item.image ? { uri: item.image } : require("../../assets/images/giftDefault.jpg") }
+                style={styles.image}
+            />
+            <View style={styles.content}>
+                <Text style={styles.name}>{item.title}</Text>
+                <Text style={styles.description}>{item.description}</Text>
+                <Text style={styles.price}>{item.price} €</Text>
+                <TouchableOpacity
+                    style={[
+                    styles.button,
+                        item.status !== "available" && styles.buttonReserved,
+                    ]}
+                    onPress={() => toggleReserve(item._id)}
+                >
+                    <Text style={styles.buttonText}>
+                    {item.status === "available" ? "RÉSERVER" : "RÉSERVÉ"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
+    const saveReservation = async () => {
+        try {
+            const token = await storageSingleton.getItem("token");
+            const role = await storageSingleton.getItem("role");
+            const guestId = await storageSingleton.getItem("guest_id");
+            const userId = await storageSingleton.getItem("user_id");
+
+            if (!token || !role) {
+                setErrorMessage("Session invalide, veuillez vous reconnecter.");
+            return;
+            }
+            const selectedWishes = items
+            .filter((item) => item.status === "wanted")
+            .map((item) => item._id);
+
+            if (selectedWishes.length === 0) {
+                setErrorMessage("Veuillez sélectionner au moins un cadeau.");
+                return;
+            }
+
+            // construire le body dynamiquement
+            const body: any = {
+                wishlist_id: wishlist._id,
+                wishes: selectedWishes,
+            };
+
+            if (userId !== null) {
+                body.user_id = userId; // ID du user
+                body.guest_id = null;
+            } else if (guestId !== null) {
+                body.guest_id = guestId; // ID du guest
+                body.user_id = null;
+            }
+
+            const res = await fetch("http://localhost:4000/reservation/add", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+            },
+                body: JSON.stringify(body),
+            });
+
+            if (!res.ok) {
+                throw new Error(`Erreur serveur: ${res.status}`);
+            }
+
+            await storageSingleton.removeItem("token");
+            await storageSingleton.removeItem("role");
+            await storageSingleton.removeItem("user_id");
+
+            router.replace("/reservation/succes");
+        } catch (err) {
+            console.error(err);
+            setErrorMessage("Impossible d’enregistrer votre choix.");
+        }
+    };
 
     return (
         <View style={styles.container}>
         {/* Désactive le header */}
         <Stack.Screen options={{ headerShown: false }} />
         { /* === ENTÊTE WISHLIST === */}
-        <Text style={styles.title}>Nom d'une wishlitst</Text>
+        <Text style={styles.title}>{wishlist.title}</Text>
 
         <View style={styles.infoRow}>
             <Image
@@ -56,18 +186,21 @@ export default function WishlistScreen() {
                 style={styles.avatar}
             />
             <View>
-                <Text style={styles.descriptionText}>Ceci est une description</Text>
-                <Text style={styles.dateText}>Date de l’événement</Text>
-                <Text style={styles.dateText}>Nom propriétaire</Text>
+                <Text style={styles.descriptionText}>{wishlist.description || "Pas de description"}</Text>
+                <Text style={styles.dateText}>Date de l’événement :{" "} {new Date(wishlist.dateEvent).toLocaleDateString()}</Text>
             </View>
         </View>
         <Text style={styles.header}>Souhaits</Text>
 
+        {errorMessage && (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+        )}
+
         {/* Liste scrollable */}
         <FlatList
-            data={items}
+            data={items.filter((item) => item.status === "available" || item.status === "wanted")} 
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             contentContainerStyle={{ paddingBottom: 120 }}
             style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
@@ -76,7 +209,7 @@ export default function WishlistScreen() {
         {/* Bouton fixe en bas */}
         <TouchableOpacity
             style={styles.saveButton}
-            onPress={() => alert("Choix enregistré !")}
+            onPress={saveReservation}
         >
             <Text style={styles.saveButtonText}>ENREGISTRER MON CHOIX</Text>
         </TouchableOpacity>
@@ -95,6 +228,17 @@ export default function WishlistScreen() {
         fontWeight: "bold",
         marginBottom: 20,
     },
+    center: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    price: {
+        fontSize: 14,
+        fontWeight: "bold",
+        color: "#333",
+        marginBottom: 6,
+    },  
     card: {
         flexDirection: "row",
         backgroundColor: "#fce4ff",
@@ -180,9 +324,17 @@ export default function WishlistScreen() {
         fontSize: 16,
         color: "gray",
         marginBottom: 4,
+        maxWidth: 200
     },
     dateText: {
         fontSize: 14,
         color: "#555",
     },
+    errorText: {
+        color: "red",
+        fontSize: 14,
+        fontWeight: "500",
+        marginBottom: 10,
+        textAlign: "center",
+    }
 });

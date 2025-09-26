@@ -24,7 +24,7 @@ export class Wish {
   @Prop()
   price: number;
 
-  @Prop({ enum: ['available', 'reserved'], default: 'available' })
+  @Prop({ enum: ['available', 'reserved', 'wanted'], default: 'available' })
   status: string;
 }
 
