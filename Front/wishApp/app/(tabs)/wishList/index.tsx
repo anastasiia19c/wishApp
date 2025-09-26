@@ -29,6 +29,9 @@ export default function WishListScreen() {
         });
 
         if (!res.ok) {
+          if (res.status === 404) {
+            return;
+          }
           const err = await res.json().catch(() => null);
           setErrorMessage(err?.message || "Impossible de charger les wishlists.");
           return;

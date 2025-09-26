@@ -20,7 +20,7 @@ export default function WishlistScreen() {
 
             // Infos wishlist
             const resWishlist = await fetch(
-                "http://localhost:4000/wishlist/68cd56a70b14017858596fd6/68cd567f0b14017858596fd1",
+                "http://localhost:4000/wishlist/68d647e02756750fcf6d250d/68d647b12756750fcf6d2508",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishlist = await resWishlist.json();
@@ -28,7 +28,7 @@ export default function WishlistScreen() {
 
             // Souhaits liés
             const resWishes = await fetch(
-                "http://localhost:4000/wish/wishlist/68cd56a70b14017858596fd6/available",
+                "http://localhost:4000/wish/wishlist/68d647e02756750fcf6d250d/available",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishes = await resWishes.json();
@@ -158,7 +158,6 @@ export default function WishlistScreen() {
 
             await storageSingleton.removeItem("token");
             await storageSingleton.removeItem("role");
-            await storageSingleton.removeItem("guest_id");
             await storageSingleton.removeItem("user_id");
 
             router.replace("/reservation/succes");

@@ -26,7 +26,7 @@ export default function PseudoScreen() {
             });
 
             const data = await response.json();
-            if (response.ok) {
+            if (response.ok && data.guest._id === null) {
                 await storageSingleton.setItem("token", data.token);
                 await storageSingleton.setItem("role", data.role); 
                 if (data.guest) {
