@@ -21,7 +21,7 @@ export default function WishlistScreen() {
 
             // Infos wishlist
             const resWishlist = await fetch(
-                "http://localhost:4000/wishlist/68d647e02756750fcf6d250d/68d647b12756750fcf6d2508",
+                "http://localhost:4000/wishlist/690869eeb4bb6e4833e1f39d/6908692db4bb6e4833e1f399",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishlist = await resWishlist.json();
@@ -34,7 +34,7 @@ export default function WishlistScreen() {
 
             // Souhaits liés
             const resWishes = await fetch(
-                "http://localhost:4000/wish/wishlist/68d647e02756750fcf6d250d/available",
+                "http://localhost:4000/wish/wishlist/690869eeb4bb6e4833e1f39d/available",
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const dataWishes = await resWishes.json();
