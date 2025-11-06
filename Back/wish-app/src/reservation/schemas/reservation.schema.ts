@@ -19,9 +19,7 @@ export class Reservation {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Wish' }], required: true })
   wishes: string[];
-  
-  @Prop({ default: false })
-  synced?: boolean;
+
 }
 
 export const ReservationSchema = SchemaFactory.createForClass(Reservation);
