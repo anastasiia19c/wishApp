@@ -59,17 +59,28 @@ export default function WishlistScreen() {
     useEffect(() => {
         let firstCheck = true;
 
-        const unsubscribe = NetInfo.addEventListener((state) => {
-            // Le premier event "isConnected: true" au montage doit être ignoré
+        const unsubscribe = NetInfo.addEventListener(async (state) => {
             if (firstCheck) {
                 firstCheck = false;
                 return;
             }
 
             if (state.isConnected) {
-                console.log("Reconnexion détectée — lancement de la synchro");
-                syncReservations();
+                console.log("Reconnexion détectée — lancement de synchronisation");
 
+                try {
+                    const reservationId = await syncReservations();
+
+                    if (reservationId) {
+                        await storageSingleton.setItem("reservation_id", reservationId);
+                        router.replace("/reservation/succes");
+                    } else {
+                        console.log("ℹAucune réservation en attente à synchroniser.");
+                    }
+                } catch (err) {
+                    console.error("Erreur pendant la synchro :", err);
+                }
+                // Affiche la bannière verte pendant 3 sec
                 if (wasOffline) {
                     setIsConnected(true);
                     setTimeout(() => setIsConnected(null), 3000);
@@ -168,7 +179,7 @@ export default function WishlistScreen() {
 
             if (!token || !role) {
                 setErrorMessage("Session invalide, veuillez vous reconnecter.");
-            return;
+                return;
             }
             const selectedWishes = items
                 .filter((item) => item.status === "wanted")
@@ -198,10 +209,15 @@ export default function WishlistScreen() {
                 return; //  stoppe ici si pas de connexion
             }
 
-            // Si connecté, on envoie maintenant
-            console.log("En ligne — envoi immédiat vers le serveur");
-            await syncReservations();
-            setInfoMessage("Réservation synchronisée avec le serveur !");
+            if (state.isConnected) {
+                const reservationId = await syncReservations();
+                // Si connecté, on envoie maintenant
+                console.log("En ligne — envoi immédiat vers le serveur");
+                await syncReservations();
+                await storageSingleton.setItem("reservation_id", reservationId);
+                setInfoMessage("Réservation synchronisée avec le serveur !");
+                router.replace("/reservation/succes");
+            }
         } catch (err) {
             console.error(err);
             setErrorMessage("Impossible d’enregistrer votre choix.");

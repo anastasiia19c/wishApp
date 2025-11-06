@@ -36,9 +36,11 @@ export async function syncReservations() {
             });
 
             if (response.ok) {
+                const data = await response.json();
                 console.log("Réservation synchronisée :", res.id);
                 await ReservationStorage.markSynced(res.id!);
-                router.replace("/reservation/succes");
+                //router.replace("/reservation/succes");
+                return data.id;
             } else {
                 console.warn("Erreur serveur :", response.status);
             }

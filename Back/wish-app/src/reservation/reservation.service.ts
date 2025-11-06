@@ -21,7 +21,7 @@ export class ReservationService {
     private wishModel: Model<WishDocument>,
     @InjectModel(Wishlist.name)
     private wishlistModel: Model<WishlistDocument>
-  ) {}
+  ) { }
 
   async create(dto: CreateReservationDto): Promise<ReservationDocument> {
     // 1. Vérifier user_id ou guest_id
@@ -133,7 +133,11 @@ export class ReservationService {
   }
 
   async findOne(id: string): Promise<Reservation> {
-    return this.reservationModel.findById(id).populate('wishlist_id').exec();
+    return this.reservationModel
+      .findById(id)
+      .populate('wishlist_id', 'title dateEvent description')
+      .populate('wishes', 'title price image')
+      .exec();
   }
   async findByUser(userId: string): Promise<Reservation[]> {
     // Vérifier si le user existe

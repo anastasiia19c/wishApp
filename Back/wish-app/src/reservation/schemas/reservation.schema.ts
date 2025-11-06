@@ -17,8 +17,11 @@ export class Reservation {
   @Prop({ type: Types.ObjectId, ref: Guest.name, default: null })
   guest_id: Types.ObjectId | null;
 
-  @Prop({ type: [String], default: [] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Wish' }], required: true })
   wishes: string[];
+  
+  @Prop({ default: false })
+  synced?: boolean;
 }
 
 export const ReservationSchema = SchemaFactory.createForClass(Reservation);
