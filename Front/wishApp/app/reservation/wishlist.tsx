@@ -5,6 +5,7 @@ import { storageSingleton } from "../../storageSingleton";
 import { ReservationStorage } from "../../service/reservationStorage";
 import { syncReservations } from "../../service/syncService";
 import NetInfo from "@react-native-community/netinfo";
+import { WishStorage } from "../../service/wishStorage";
 
 export default function WishlistScreen() {
     const [wishlist, setWishlist] = useState<any>(null);
@@ -45,6 +46,8 @@ export default function WishlistScreen() {
                 );
                 const dataWishes = await resWishes.json();
                 setItems(dataWishes);
+                await WishStorage.setAll(dataWishes);
+
             } catch (err) {
                 console.error(err);
                 setErrorMessage("Impossible de charger les données.");
@@ -72,6 +75,8 @@ export default function WishlistScreen() {
                     const reservationId = await syncReservations();
 
                     if (reservationId) {
+                        const now = new Date().toLocaleString();
+                        await storageSingleton.setItem("last_sync", now);
                         await storageSingleton.setItem("reservation_id", reservationId);
                         router.replace("/reservation/succes");
                     } else {
@@ -90,6 +95,8 @@ export default function WishlistScreen() {
                 console.log("Hors ligne");
                 setIsConnected(false);
                 setWasOffline(true);
+                const localWishes = await WishStorage.getAll();
+                setItems(localWishes);
             }
         });
 
@@ -213,7 +220,6 @@ export default function WishlistScreen() {
                 const reservationId = await syncReservations();
                 // Si connecté, on envoie maintenant
                 console.log("En ligne — envoi immédiat vers le serveur");
-                await syncReservations();
                 await storageSingleton.setItem("reservation_id", reservationId);
                 setInfoMessage("Réservation synchronisée avec le serveur !");
                 router.replace("/reservation/succes");
@@ -228,6 +234,20 @@ export default function WishlistScreen() {
         <View style={styles.container}>
             {/* Désactive le header */}
             <Stack.Screen options={{ headerShown: false }} />
+            {isConnected === false && (
+                <View style={styles.offlineBanner}>
+                    <Text style={styles.offlineText}>
+                        🔴 Vous êtes hors ligne — votre réservation sera enregistrée localement.
+                    </Text>
+                </View>
+            )}
+            {isConnected === true && (
+                <View style={styles.onlineBanner}>
+                    <Text style={styles.onlineText}>
+                        🟢 Connexion rétablie — synchronisation en cours...
+                    </Text>
+                </View>
+            )}
             { /* === ENTÊTE WISHLIST === */}
             <Text style={styles.title}>{wishlist.title}</Text>
 
@@ -246,21 +266,7 @@ export default function WishlistScreen() {
             {errorMessage && (
                 <Text style={styles.errorText}>{errorMessage}</Text>
             )}
-            {isConnected === false && (
-                <View style={styles.offlineBanner}>
-                    <Text style={styles.offlineText}>
-                        🔴 Vous êtes hors ligne — votre réservation sera enregistrée localement.
-                    </Text>
-                </View>
-            )}
 
-            {isConnected === true && (
-                <View style={styles.onlineBanner}>
-                    <Text style={styles.onlineText}>
-                        🟢 Connexion rétablie — synchronisation en cours...
-                    </Text>
-                </View>
-            )}
             {infoMessage && (
                 <View style={styles.infoBanner}>
                     <Text style={styles.infoText}>{infoMessage}</Text>

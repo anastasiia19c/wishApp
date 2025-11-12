@@ -1,7 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
 import { ReservationStorage } from "./reservationStorage";
 import { storageSingleton } from "../storageSingleton";
-import { router } from "expo-router";
 
 const API_BASE = "http://localhost:4000"; // adapte selon ton environnement
 
@@ -12,6 +11,10 @@ export async function syncReservations() {
     if (!state.isConnected) {
         console.log("Pas de connexion, synchro annulée");
         return;
+    }
+    const storedId = await storageSingleton.getItem("reservation_id");
+    if (storedId) {
+            return;
     }
 
     const all = await ReservationStorage.getAll();
@@ -39,7 +42,6 @@ export async function syncReservations() {
                 const data = await response.json();
                 console.log("Réservation synchronisée :", res.id);
                 await ReservationStorage.markSynced(res.id!);
-                //router.replace("/reservation/succes");
                 return data.id;
             } else {
                 console.warn("Erreur serveur :", response.status);
