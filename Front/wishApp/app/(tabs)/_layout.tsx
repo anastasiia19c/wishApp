@@ -35,7 +35,7 @@ export default function TabLayout() {
         name="gift/index"
         options={{
           headerShown: true,
-          headerTitle: 'Mes Cadeaux',
+          headerTitle: 'Mes Réservations',
           title: '',
           headerBackground: () => (
             <LinearGradient

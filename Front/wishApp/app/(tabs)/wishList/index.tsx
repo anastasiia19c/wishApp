@@ -4,6 +4,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { storageSingleton } from "../../../storageSingleton";
+import NetInfo from "@react-native-community/netinfo";
 
 export default function WishListScreen() {
   const [wishlists, setWishlists] = useState<any[]>([]);
@@ -17,63 +18,52 @@ export default function WishListScreen() {
     coverImage: "",
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+const [serverReachable, setServerReachable] = useState(true);
 
   useEffect(() => {
-    const fetchWishlists = async () => {
-      try {
-        const user_id = await storageSingleton.getItem("id");
-        const token = await storageSingleton.getItem("token");
-
-        const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            return;
-          }
-          const err = await res.json().catch(() => null);
-          setErrorMessage(err?.message || "Impossible de charger les wishlists.");
-          return;
-        }
-
-        const data = await res.json();
-        setWishlists(data);
-      } catch (error) {
-        console.error("Erreur de récupération :", error);
-        setErrorMessage("Erreur réseau lors du chargement des wishlists.");
-      }
-    };
-
-    fetchWishlists();
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const fetchWishlists = async () => {
-    try {
-      setRefreshing(true);
-      const user_id = await storageSingleton.getItem("id");
-      const token = await storageSingleton.getItem("token");
+const fetchWishlists = async () => {
+  try {
+    setRefreshing(true);
+    const user_id = await storageSingleton.getItem("id");
+    const token = await storageSingleton.getItem("token");
 
-      const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const res = await fetch(`http://10.8.251.34:4000/wishlist/user/${user_id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      if (!res.ok) {
-        throw new Error("Erreur serveur");
-      }
-
-      const data = await res.json();
-      setWishlists(data);
-    } catch (err) {
-      console.error("Erreur fetch:", err);
-    } finally {
-      setRefreshing(false);
+    // ❌ SI LE SERVEUR RENVOIE UNE ERREUR (500, 404...)
+    if (!res.ok) {
+      setServerReachable(false);
+      console.log("Serveur injoignable => res.status =", res.status);
+      return;
     }
-  };
+
+    // ✅ OK → serveur accessible
+    setServerReachable(true);
+
+    const data = await res.json();
+    setWishlists(data);
+
+  } catch (err) {
+    // ❌ ERREUR FETCH = serveur injoignable (réseau coupé, IP incorrecte, serveur down...)
+    console.error("Erreur fetch:", err);
+    setServerReachable(false);
+  } finally {
+    setRefreshing(false);
+  }
+};
+
 
   useEffect(() => {
     fetchWishlists();
-  }, []);
+  }, [isConnected]);
 
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [showClosePicker, setShowClosePicker] = useState(false);
@@ -114,7 +104,7 @@ export default function WishListScreen() {
         return;
       }
 
-      const response = await fetch("http://localhost:4000/wishlist/add", {
+      const response = await fetch("http://10.8.251.34:4000/wishlist/add", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -166,8 +156,14 @@ export default function WishListScreen() {
 
   return (
     <View style={styles.container}>
-
-      {wishlists.length === 0 ? (
+      {(!isConnected || !serverReachable)  &&  (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
+            🔴 Vous êtes hors ligne. Il n'y a aucune wishlist enregistrée localement pour l'instant
+          </Text>
+        </View>
+      )}
+      {(wishlists.length === 0 && serverReachable && isConnected ) ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Crée ta première wishlist</Text>
           <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
@@ -176,16 +172,17 @@ export default function WishListScreen() {
         </View>
       ) : (
         <><FlatList
-            data={wishlists}
-            renderItem={renderItem}
-            keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
-            numColumns={2}
-            contentContainerStyle={styles.list} 
-            refreshing={refreshing}
-            onRefresh={fetchWishlists}/>
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton1}>
-              <Text style={styles.plus}>+</Text>
-            </TouchableOpacity></>
+          data={wishlists}
+          renderItem={renderItem}
+          keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
+          numColumns={2}
+          contentContainerStyle={styles.list}
+          refreshing={refreshing}
+          onRefresh={fetchWishlists}
+          showsVerticalScrollIndicator={false} />
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton1}>
+            <Text style={styles.plus}>+</Text>
+          </TouchableOpacity></>
       )}
 
       {/* Modal ajout wish-list */}
@@ -193,7 +190,7 @@ export default function WishListScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <MaterialCommunityIcons name="close" size={25} color={"#000000ff"} style={{alignSelf: "flex-end", paddingBottom: 10}}/>
+              <MaterialCommunityIcons name="close" size={25} color={"#000000ff"} style={{ alignSelf: "flex-end", paddingBottom: 10 }} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Ajouter une wishlist</Text>
             {errorMessage && (
@@ -300,7 +297,7 @@ export default function WishListScreen() {
               style={styles.image}
               onPress={pickImage}
             >
-              <MaterialCommunityIcons name="file-image-plus-outline" size={25} color={"#000000ff"}/>
+              <MaterialCommunityIcons name="file-image-plus-outline" size={25} color={"#000000ff"} />
             </TouchableOpacity>
 
             {form.coverImage ? (
@@ -320,6 +317,18 @@ export default function WishListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
+  offlineBanner: {
+    backgroundColor: "#ffcccc",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  offlineText: {
+    color: "#b00020",
+    fontWeight: "600",
+    textAlign: "center",
+  },
   header: {
     paddingVertical: 15,
     alignItems: "center",
@@ -350,7 +359,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   addButton1: {
-    backgroundColor: "rgba(253, 181, 244, 0.7)", 
+    backgroundColor: "rgba(253, 181, 244, 0.7)",
     borderRadius: 50,
     width: 70,
     height: 70,
@@ -404,7 +413,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingVertical: 5,
   },
-  description:{
+  description: {
     borderBottomWidth: 1,
     borderBottomColor: "#A64DFF",
     marginBottom: 15,
@@ -424,28 +433,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   dateEvent: {
-    borderBottomWidth: 1, 
-    padding: 10, 
+    borderBottomWidth: 1,
+    padding: 10,
     borderColor: "#A64DFF",
-    marginBottom: 10 
+    marginBottom: 10
   },
-  dateClosed:{
+  dateClosed: {
     borderBottomWidth: 1,
     padding: 10,
     borderColor: "#A64DFF",
   },
-  image:{
+  image: {
     marginTop: 10,
-    padding: 15, 
-    alignItems: "center", 
+    padding: 15,
+    alignItems: "center",
     marginBottom: 10
   },
   coverImage: {
-    width: 100, 
-    height: 100, 
-    borderRadius: 10, 
+    width: 100,
+    height: 100,
+    borderRadius: 10,
     marginBottom: 10,
-    alignSelf: "center", 
+    alignSelf: "center",
     justifyContent: "center"
   },
   errorText: {
