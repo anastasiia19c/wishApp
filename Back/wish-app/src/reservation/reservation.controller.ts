@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, BadRequestException, Query } from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 
@@ -14,6 +14,21 @@ export class ReservationController {
     };
   }
 
+  @Post('sync-offline')
+  async syncOffline(@Body() dtos: CreateReservationDto[]) {
+    if (!Array.isArray(dtos)) {
+      throw new BadRequestException('dtos must be an array');
+    }
+
+    const saved = [];
+    for (const dto of dtos) {
+      const created = await this.reservationService.create(dto);
+      saved.push(created);
+    }
+    return saved;
+  }
+
+
   @Get() // GET /reservation
   async findAll() {
     return this.reservationService.findAll();
@@ -24,8 +39,8 @@ export class ReservationController {
     return this.reservationService.findOne(id);
   }
   @Get('user/:userId')
-  async findByUser(@Param('userId') userId: string) {
-    return this.reservationService.findByUser(userId);
+  async findByUser(@Param('userId') userId: string, @Query('since') since?: string) {
+    return this.reservationService.findByUser(userId, since);
   }
 
   @Get('guest/:guestId')
