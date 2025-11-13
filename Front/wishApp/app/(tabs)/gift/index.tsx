@@ -32,6 +32,9 @@ export default function ReservationsScreen() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [lastSyncDate, setLastSyncDate] = useState<string | null>(null);
+  const [lastSyncVisible, setLastSyncVisible] = useState(false);
+
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -140,6 +143,11 @@ export default function ReservationsScreen() {
       // Mettre à jour la date du dernier sync
       const newSyncDate = getMaxUpdatedAt(merged);
       await AsyncStorage.setItem("reservations_last_sync", newSyncDate);
+      setLastSyncDate(newSyncDate);
+      setLastSyncVisible(true);
+
+      // Faire disparaître après 4 secondes (modifiable)
+      setTimeout(() => setLastSyncVisible(false), 3000);
 
 
     } catch (error) {
@@ -156,6 +164,12 @@ export default function ReservationsScreen() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    (async () => {
+      const saved = await AsyncStorage.getItem("reservations_last_sync");
+      if (saved) setLastSyncDate(saved);
+    })();
+  }, []);
 
   useEffect(() => {
     fetchReservations();
@@ -209,6 +223,12 @@ export default function ReservationsScreen() {
 
   return (
     <View style={styles.container}>
+      {lastSyncVisible && lastSyncDate && (
+        <Text style={styles.lastSyncText}>
+          🟣 Dernière synchronisation : {new Date(lastSyncDate).toLocaleString("fr-FR")}
+        </Text>
+      )}
+
       {isConnected === false && (
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
@@ -236,6 +256,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f5ff",
     paddingHorizontal: 16,
     paddingTop: 30,
+  },
+  lastSyncText: {
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#4b0082",
+    fontWeight: "600",
   },
   offlineBanner: {
     backgroundColor: "#ffcccc",
