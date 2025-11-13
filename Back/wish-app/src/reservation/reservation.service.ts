@@ -139,15 +139,44 @@ export class ReservationService {
       .populate('wishes', 'title price image')
       .exec();
   }
-  async findByUser(userId: string): Promise<Reservation[]> {
+  async findByUser(userId: string, since?: string): Promise<Reservation[]> {
+
     // Vérifier si le user existe
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
 
-    // Retourner les réservations associées
-    return this.reservationModel.find({ user_id: userId }).populate('wishes').populate('wishlist_id').exec();
+    // Charger les réservations du user (avec wishes et wishlist)
+    const reservations = await this.reservationModel
+      .find({ user_id: userId })
+      .populate('wishes')
+      .populate('wishlist_id')
+      .exec();
+
+    // Si aucune date de sync => renvoyer full dataset
+    if (!since) return reservations;
+
+    const sinceDate = new Date(since);
+
+    const filtered = [];
+
+    for (const res of reservations) {
+      const changedWishes = res.wishes.filter(w => new Date(w.updatedAt) > sinceDate);
+
+      if (changedWishes.length > 0) {
+        filtered.push({
+          _id: res._id,
+          user_id: res.user_id,
+          wishlist_id: res.wishlist_id,
+          wishes: changedWishes, 
+          updatedAt: res.updatedAt,
+          createdAt: res.createdAt,
+        });
+      }
+    }
+
+    return filtered;
   }
 
   async findByGuest(guestId: string): Promise<Reservation[]> {

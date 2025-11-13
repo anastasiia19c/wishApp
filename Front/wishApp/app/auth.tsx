@@ -20,7 +20,7 @@ export default function RegisterScreen() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://10.8.251.34:4000/user/add', {
+            const response = await fetch('http://localhost:4000/user/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

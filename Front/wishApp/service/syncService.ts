@@ -2,7 +2,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { ReservationStorage } from "./reservationStorage";
 import { storageSingleton } from "../storageSingleton";
 
-const API_BASE = "http://10.8.251.34:4000"; // adapte selon ton environnement
+const API_BASE = "http://localhost:4000"; // adapte selon ton environnement
 
 export async function syncReservations() {
     const state = await NetInfo.fetch();

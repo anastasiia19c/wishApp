@@ -18,7 +18,13 @@ export class Reservation {
   guest_id: Types.ObjectId | null;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Wish' }], required: true })
-  wishes: string[];
+  wishes: Types.ObjectId[] | any[];
+
+  @Prop()
+  createdAt?: Date;
+
+  @Prop()
+  updatedAt?: Date;
 
 }
 

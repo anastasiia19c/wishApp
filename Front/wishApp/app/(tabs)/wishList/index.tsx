@@ -34,7 +34,7 @@ const fetchWishlists = async () => {
     const user_id = await storageSingleton.getItem("id");
     const token = await storageSingleton.getItem("token");
 
-    const res = await fetch(`http://10.8.251.34:4000/wishlist/user/${user_id}`, {
+    const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -104,7 +104,7 @@ const fetchWishlists = async () => {
         return;
       }
 
-      const response = await fetch("http://10.8.251.34:4000/wishlist/add", {
+      const response = await fetch("http://localhost:4000/wishlist/add", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

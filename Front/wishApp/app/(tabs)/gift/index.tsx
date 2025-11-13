@@ -12,6 +12,7 @@ type Wish = {
   price: number;
   image?: string;
   url?: string;
+  updatedAt: string;
 };
 
 type Reservation = {
@@ -38,6 +39,50 @@ export default function ReservationsScreen() {
     });
     return () => unsubscribe();
   }, []);
+  const getMaxUpdatedAt = (reservations: Reservation[]): string => {
+    let max = 0;
+
+    reservations.forEach(res => {
+      res.wishes.forEach(w => {
+        const t = new Date(w.updatedAt).getTime();
+        if (t > max) max = t;
+      });
+    });
+
+    return new Date(max).toISOString();
+  };
+
+  const mergeReservations = (
+    cached: Reservation[],
+    updates: Reservation[]
+  ): Reservation[] => {
+    const map = new Map<string, Reservation>(cached.map(r => [r._id, r]));
+
+    updates.forEach((update: Reservation) => {
+      const existing = map.get(update._id);
+
+      if (!existing) {
+        map.set(update._id, update);
+        return;
+      }
+
+      // Mettre à jour uniquement les wishes modifiés
+      update.wishes.forEach((updatedWish: Wish) => {
+        const idx = existing.wishes.findIndex(w => w._id === updatedWish._id);
+
+        if (idx !== -1) {
+          existing.wishes[idx] = updatedWish;
+        } else {
+          existing.wishes.push(updatedWish);
+        }
+      });
+
+      map.set(update._id, existing);
+    });
+
+    return Array.from(map.values());
+  };
+
 
   const fetchReservations = async () => {
     try {
@@ -63,16 +108,40 @@ export default function ReservationsScreen() {
         }
         return;
       }
+      const lastSync = await AsyncStorage.getItem("reservations_last_sync");
+      const url = lastSync
+        ? `http://localhost:4000/reservation/user/${storedUserId}?since=${lastSync}`
+        : `http://localhost:4000/reservation/user/${storedUserId}`;
 
-      const response = await fetch(`http://10.8.251.34:4000/reservation/user/${storedUserId}`,
-        { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (!response.ok) {
         throw new Error(`Erreur serveur : ${response.status}`);
       }
 
-      const data = await response.json();
-      setReservations(data);
-      await AsyncStorage.setItem("cached_reservations", JSON.stringify(data));
+      const updates = await response.json();
+
+      // Charger le cache actuel (pour fusionner)
+      const cachedData = JSON.parse(
+        (await AsyncStorage.getItem("cached_reservations")) || "[]"
+      );
+
+      // Première synchro = pas de lastSync => on prend tout
+      const merged = lastSync ? mergeReservations(cachedData, updates) : updates;
+
+      // Mettre à jour l’affichage
+      setReservations(merged);
+
+      // Stocker la version fusionnée
+      await AsyncStorage.setItem("cached_reservations", JSON.stringify(merged));
+
+      // Mettre à jour la date du dernier sync
+      const newSyncDate = getMaxUpdatedAt(merged);
+      await AsyncStorage.setItem("reservations_last_sync", newSyncDate);
+
+
     } catch (error) {
       console.warn("Impossible de récupérer les réservations :", error);
       // Fallback local en cas d'erreur réseau
