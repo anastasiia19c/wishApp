@@ -13,108 +13,108 @@ export default function RegisterScreen() {
 
     const handleRegister = async () => {
         if (!nom || !email || !password) {
-        setErrorMessage('Veuillez remplir tous les champs.');
-        return;
+            setErrorMessage('Veuillez remplir tous les champs.');
+            return;
         }
 
         setIsLoading(true);
 
         try {
-        const response = await fetch('http://localhost:4000/user/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            name: nom,
-            email,
-            password,
-            }),
-        });
+            const response = await fetch('http://localhost:4000/user/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: nom,
+                    email,
+                    password,
+                }),
+            });
 
-        if (response.ok) {
-            router.replace('/');
-        } else {
-            setErrorMessage('Impossible de créer un compte.');
-        }
+            if (response.ok) {
+                router.replace('/');
+            } else {
+                setErrorMessage('Impossible de créer un compte.');
+            }
         } catch (error) {
-        console.error(error);
-        setErrorMessage('Problème de connexion au serveur.');
+            console.error(error);
+            setErrorMessage('Problème de connexion au serveur.');
         } finally {
-        setIsLoading(false);
+            setIsLoading(false);
         }
     };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.container}>
-            <View style={styles.logoContainer}>
-            <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-            </View>
+            <Stack.Screen options={{ headerShown: false }} />
+            <View style={styles.container}>
+                <View style={styles.logoContainer}>
+                    <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+                </View>
 
-            <View style={styles.formContainer}>
-            <Text style={styles.title}>Créer un compte</Text>
-            <View style={styles.accountLinkContainer}>
-                <TouchableOpacity onPress={() => router.replace('./')}>
-                    <Text style={styles.creerCompte}>J'ai déjà un compte</Text>
-                </TouchableOpacity>
+                <View style={styles.formContainer}>
+                    <Text style={styles.title}>Créer un compte</Text>
+                    <View style={styles.accountLinkContainer}>
+                        <TouchableOpacity onPress={() => router.replace('./')}>
+                            <Text style={styles.creerCompte}>J'ai déjà un compte</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {errorMessage && (
+                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    )}
+                    {!token ? (
+                        <>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Nom*</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Alice Cooper"
+                                    placeholderTextColor="#A9A9A9"
+                                    value={nom}
+                                    onChangeText={setNom}
+                                />
+                            </View>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>E-mail*</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Email utilisateur"
+                                    placeholderTextColor="#A9A9A9"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                />
+                            </View>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Mot de passe*</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    secureTextEntry
+                                    placeholder="Mot de passe"
+                                    placeholderTextColor="#A9A9A9"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                />
+                            </View>
+                            <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
+                                <Text style={styles.loginButtonText}>
+                                    {isLoading ? 'Chargement...' : 'Créer un compte'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
+                            <TouchableOpacity style={styles.loginButton} >
+                                <Text style={styles.loginButtonText}>Se déconnecter</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
             </View>
-            {errorMessage && (
-                <Text style={styles.errorText}>{errorMessage}</Text>
-            )}
-            {!token ? (
-                <>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Nom*</Text>
-                    <TextInput
-                    style={styles.input}
-                    placeholder="Alice Cooper"
-                    placeholderTextColor="#A9A9A9"
-                    value={nom}
-                    onChangeText={setNom}
-                    />
-                </View>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>E-mail*</Text>
-                    <TextInput
-                    style={styles.input}
-                    placeholder="Email utilisateur"
-                    placeholderTextColor="#A9A9A9"
-                    value={email}
-                    onChangeText={setEmail}
-                    />
-                </View>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Mot de passe*</Text>
-                    <TextInput
-                    style={styles.input}
-                    secureTextEntry
-                    placeholder="Mot de passe"
-                    placeholderTextColor="#A9A9A9"
-                    value={password}
-                    onChangeText={setPassword}
-                    />
-                </View>
-                <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
-                    <Text style={styles.loginButtonText}>
-                    {isLoading ? 'Chargement...' : 'Créer un compte'}
-                    </Text>
-                </TouchableOpacity>
-                </>
-            ) : (
-                <>
-                <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
-                <TouchableOpacity style={styles.loginButton} >
-                    <Text style={styles.loginButtonText}>Se déconnecter</Text>
-                </TouchableOpacity>
-                </>
-            )}
-            </View>
-        </View>
         </ScrollView>
     );
-    }
+}
 
-    const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',

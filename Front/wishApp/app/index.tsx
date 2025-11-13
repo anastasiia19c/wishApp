@@ -14,11 +14,11 @@ export default function LoginScreen() {
 
     useEffect(() => {
         const checkAuth = async () => {
-        const token = await storageSingleton.getItem("token");
-        if (token) {
-            router.replace("/(tabs)/wishList"); 
-        }
-        setIsLoading(false);
+            const token = await storageSingleton.getItem("token");
+            if (token) {
+                router.replace("/(tabs)/wishList");
+            }
+            setIsLoading(false);
         };
         checkAuth();
     }, []);
@@ -35,7 +35,7 @@ export default function LoginScreen() {
         try {
             const response = await fetch("http://localhost:4000/user/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
@@ -66,81 +66,81 @@ export default function LoginScreen() {
         await storageSingleton.removeItem("guest_id");
         await storageSingleton.removeItem("user_id");
         setToken(null);
-        setErrorMessage( "Vous avez été déconnecté.");
+        setErrorMessage("Vous avez été déconnecté.");
     };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.container}>
-            <View style={styles.logoContainer}>
-            <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-            </View>
-
-            <View style={styles.formContainer}>
-            <Text style={styles.title}>Login</Text>
-            <Text style={styles.sousTitle}>
-                Connectez-vous pour découvrir toutes nos fonctionnalités.
-            </Text>
-            {errorMessage && (
-                <Text style={styles.errorText}>{errorMessage}</Text>
-            )}
-            {!token ? (
-                <>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>E-mail*</Text>
-                    <TextInput
-                    style={styles.input}
-                    placeholder="Email utilisateur"
-                    placeholderTextColor="#A9A9A9"
-                    value={email}
-                    onChangeText={setEmail}
-                    />
+            <Stack.Screen options={{ headerShown: false }} />
+            <View style={styles.container}>
+                <View style={styles.logoContainer}>
+                    <Image source={require('../assets/images/logo.png')} style={styles.logo} />
                 </View>
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Mot de passe*</Text>
-                    <TextInput
-                    style={styles.input}
-                    secureTextEntry
-                    placeholder="Mot de passe"
-                    placeholderTextColor="#A9A9A9"
-                    value={password}
-                    onChangeText={setPassword}
-                    />
-                </View>
-
-                <TouchableOpacity>
-                    <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                    <Text style={styles.loginButtonText}>
-                        {isLoading ? "Chargement..." : "Se connecter"}
+                <View style={styles.formContainer}>
+                    <Text style={styles.title}>Login</Text>
+                    <Text style={styles.sousTitle}>
+                        Connectez-vous pour découvrir toutes nos fonctionnalités.
                     </Text>
-                </TouchableOpacity>
+                    {errorMessage && (
+                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    )}
+                    {!token ? (
+                        <>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>E-mail*</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Email utilisateur"
+                                    placeholderTextColor="#A9A9A9"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                />
+                            </View>
 
-                <View style={styles.accountLinkContainer}>
-                    <TouchableOpacity onPress={() => router.replace('./auth')}>
-                        <Text style={styles.creerCompte}>Créer un compte</Text>
-                    </TouchableOpacity>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Mot de passe*</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    secureTextEntry
+                                    placeholder="Mot de passe"
+                                    placeholderTextColor="#A9A9A9"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                />
+                            </View>
+
+                            <TouchableOpacity>
+                                <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                                <Text style={styles.loginButtonText}>
+                                    {isLoading ? "Chargement..." : "Se connecter"}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <View style={styles.accountLinkContainer}>
+                                <TouchableOpacity onPress={() => router.replace('./auth')}>
+                                    <Text style={styles.creerCompte}>Créer un compte</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
+                            <TouchableOpacity style={styles.loginButton} onPress={handleLogout}>
+                                <Text style={styles.loginButtonText}>Se déconnecter</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
-                </>
-            ) : (
-                <>
-                <Text style={styles.inputLabel}>Vous êtes déjà connecté.</Text>
-                    <TouchableOpacity style={styles.loginButton} onPress={handleLogout}>
-                        <Text style={styles.loginButtonText}>Se déconnecter</Text>
-                    </TouchableOpacity>
-                </>
-            )}
             </View>
-        </View>
         </ScrollView>
     );
-    }
+}
 
-    const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
