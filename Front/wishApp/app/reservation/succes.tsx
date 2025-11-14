@@ -13,8 +13,15 @@ export default function EntranceScreen() {
     const [error, setError] = useState<string | null>(null);
     const [lastSync, setLastSync] = useState<string | null>(null);
     const [fadeAnim] = useState(new Animated.Value(1));
+    const [wasOffline, setWasOffline] = useState(false);
+    let isFetching = false;
 
     const fetchReservation = async () => {
+        if (isFetching) {
+            return;
+        }
+        isFetching = true;
+
         try {
             const storedId = await storageSingleton.getItem("reservation_id");
             if (!storedId) {
@@ -27,25 +34,18 @@ export default function EntranceScreen() {
             const netState = await NetInfo.fetch();
             setId(storedId);
 
-            // Mode hors ligne → lecture des données locales
+            // Mode hors ligne → lecture locale
             if (!netState.isConnected) {
                 console.log("Hors ligne — lecture locale");
                 const localReservations = await ReservationStorage.getAll();
-                const local = localReservations.find(
-                    (r) => r.id === storedId || !r.synced
-                );
-                if (local) {
-                    setReservation(local);
-                } else {
-                    setError("Aucune donnée locale trouvée.");
-                }
+                const local = localReservations.find((r) => r.id === storedId);
+                if (local) setReservation(local);
+                else setError("Aucune donnée locale trouvée.");
                 setLoading(false);
                 return;
             }
 
-
             // Mode en ligne → récupération depuis le serveur
-            console.log("Connexion détectée — récupération serveur");
             const res = await fetch(`http://localhost:4000/reservation/${storedId}`, {
                 headers: {
                     "Content-Type": "application/json",
@@ -74,6 +74,7 @@ export default function EntranceScreen() {
             console.error(err);
             setError("Impossible de charger la réservation.");
         } finally {
+            isFetching = false;
             setLoading(false);
         }
     };
@@ -84,14 +85,23 @@ export default function EntranceScreen() {
     }, []);
     // === Détection reconnexion (pour synchroniser)
     useEffect(() => {
-        const unsubscribe = NetInfo.addEventListener(async (state) => {
-            if (state.isConnected) {
-                console.log("Reconnexion — synchronisation complète");
-                await fetchReservation(); // met à jour depuis le serveur (merge)
+        const unsub = NetInfo.addEventListener(async (state) => {
+
+            if (!state.isConnected) {
+                setWasOffline(true);
+                return;
+            }
+
+            // Si on passe offline → online
+            if (state.isConnected && wasOffline) {
+                setWasOffline(false);
+                await fetchReservation();
             }
         });
-        return () => unsubscribe();
-    }, []);
+
+        return () => unsub();
+    }, [wasOffline]);
+
 
     useEffect(() => {
         const loadLastSync = async () => {
