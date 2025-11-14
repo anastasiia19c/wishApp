@@ -34,6 +34,8 @@ export default function ReservationsScreen() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [lastSyncDate, setLastSyncDate] = useState<string | null>(null);
   const [lastSyncVisible, setLastSyncVisible] = useState(false);
+  const [prevConnection, setPrevConnection] = useState<boolean | null>(null);
+
 
 
   useEffect(() => {
@@ -42,6 +44,21 @@ export default function ReservationsScreen() {
     });
     return () => unsubscribe();
   }, []);
+  useEffect(() => {
+    // Ignorer le tout premier rendu (prevConnection = null)
+    if (prevConnection === false && isConnected === true) {
+      // On vient JUSTE de sortir du offline
+      if (lastSyncDate) {
+        setLastSyncVisible(true);
+
+        setTimeout(() => setLastSyncVisible(false), 3000);
+      }
+    }
+
+    // Mettre à jour le précédent état
+    setPrevConnection(isConnected);
+  }, [isConnected]);
+
   const getMaxUpdatedAt = (reservations: Reservation[]): string => {
     let max = 0;
 
@@ -144,10 +161,6 @@ export default function ReservationsScreen() {
       const newSyncDate = getMaxUpdatedAt(merged);
       await AsyncStorage.setItem("reservations_last_sync", newSyncDate);
       setLastSyncDate(newSyncDate);
-      setLastSyncVisible(true);
-
-      // Faire disparaître après 4 secondes (modifiable)
-      setTimeout(() => setLastSyncVisible(false), 3000);
 
 
     } catch (error) {

@@ -19,7 +19,7 @@ export default function WishListScreen() {
   });
   const [refreshing, setRefreshing] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-const [serverReachable, setServerReachable] = useState(true);
+  const [serverReachable, setServerReachable] = useState(true);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -28,37 +28,37 @@ const [serverReachable, setServerReachable] = useState(true);
     return () => unsubscribe();
   }, []);
 
-const fetchWishlists = async () => {
-  try {
-    setRefreshing(true);
-    const user_id = await storageSingleton.getItem("id");
-    const token = await storageSingleton.getItem("token");
+  const fetchWishlists = async () => {
+    try {
+      setRefreshing(true);
+      const user_id = await storageSingleton.getItem("id");
+      const token = await storageSingleton.getItem("token");
 
-    const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    // ❌ SI LE SERVEUR RENVOIE UNE ERREUR (500, 404...)
-    if (!res.ok) {
+      // SI LE SERVEUR RENVOIE UNE ERREUR (500, 404...)
+      if (!res.ok) {
+        setServerReachable(false);
+        console.log("Serveur injoignable => res.status =", res.status);
+        return;
+      }
+
+      // OK → serveur accessible
+      setServerReachable(true);
+
+      const data = await res.json();
+      setWishlists(data);
+
+    } catch (err) {
+      // ERREUR FETCH = serveur injoignable (réseau coupé, IP incorrecte, serveur down...)
+      console.error("Erreur fetch:", err);
       setServerReachable(false);
-      console.log("Serveur injoignable => res.status =", res.status);
-      return;
+    } finally {
+      setRefreshing(false);
     }
-
-    // ✅ OK → serveur accessible
-    setServerReachable(true);
-
-    const data = await res.json();
-    setWishlists(data);
-
-  } catch (err) {
-    // ❌ ERREUR FETCH = serveur injoignable (réseau coupé, IP incorrecte, serveur down...)
-    console.error("Erreur fetch:", err);
-    setServerReachable(false);
-  } finally {
-    setRefreshing(false);
-  }
-};
+  };
 
 
   useEffect(() => {
@@ -156,14 +156,14 @@ const fetchWishlists = async () => {
 
   return (
     <View style={styles.container}>
-      {(!isConnected || !serverReachable)  &&  (
+      {!isConnected || !serverReachable ? (
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
             🔴 Vous êtes hors ligne. Il n'y a aucune wishlist enregistrée localement pour l'instant
           </Text>
         </View>
-      )}
-      {(wishlists.length === 0 && serverReachable && isConnected ) ? (
+
+      ) : wishlists.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Crée ta première wishlist</Text>
           <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
@@ -171,18 +171,21 @@ const fetchWishlists = async () => {
           </TouchableOpacity>
         </View>
       ) : (
-        <><FlatList
-          data={wishlists}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
-          numColumns={2}
-          contentContainerStyle={styles.list}
-          refreshing={refreshing}
-          onRefresh={fetchWishlists}
-          showsVerticalScrollIndicator={false} />
+        <>
+          <FlatList
+            data={wishlists}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
+            numColumns={2}
+            contentContainerStyle={styles.list}
+            refreshing={refreshing}
+            onRefresh={fetchWishlists}
+            showsVerticalScrollIndicator={false}
+          />
           <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton1}>
             <Text style={styles.plus}>+</Text>
-          </TouchableOpacity></>
+          </TouchableOpacity>
+        </>
       )}
 
       {/* Modal ajout wish-list */}

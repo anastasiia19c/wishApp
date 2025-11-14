@@ -206,7 +206,6 @@ export default function WishlistScreen() {
 
             //  Toujours sauvegarder localement
             await ReservationStorage.save(body);
-            console.log("Réservation enregistrée localement");
 
             // Vérifie la connexion avant d’essayer d’envoyer
             const state = await NetInfo.fetch();
