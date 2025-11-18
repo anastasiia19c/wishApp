@@ -13,7 +13,7 @@ export class ReservationController {
       id: reservation._id,
     };
   }
-
+//
   @Post('sync-offline')
   async syncOffline(@Body() dtos: CreateReservationDto[]) {
     if (!Array.isArray(dtos)) {
