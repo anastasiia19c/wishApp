@@ -20,10 +20,7 @@ services:
     restart: always        # relance si Mongo plante
 
   backend:
-    build:
-      context: ./Back/wish-app
-      dockerfile: Dockerfile
-      target: app_prod 
+    image: ghcr.io/anastasiia19c/wishApp-api:latest
     container_name: wishapp_backend
     env_file: .env.prod
     ports:
