@@ -68,7 +68,7 @@ jobs:
             docker pull $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest
 
             echo "==> Mise à jour des conteneurs"
-            cd /home/tatkova/wishApp
+            cd ~/Bureau/403-filrouge-TATKOVA-Anastasiia/wishApp
             docker compose --env-file .env.prod -f docker-compose.prod.yml down
             docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 
