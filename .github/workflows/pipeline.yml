@@ -1,76 +1,73 @@
-name: CI/CD - Build, Publish & Deploy (Backend only) # Nom visible dans GitHub Actions
+name: CI/CD - Build, Publish & Deploy (Backend only)
 
 on:
   push:
     branches:
-      - main # Déclenche la pipeline à chaque push sur main
+      - main
 
 permissions:
-  contents: read # Autorise la lecture du dépôt
-  packages: write # Autorise le push vers GitHub Container Registry (GHCR)
+  contents: read
+  packages: write
 
 env:
-  REGISTRY: ghcr.io # Adresse du registry Docker (GitHub)
-  IMAGE_NAME: wish-app-api # Nom de l’image Docker à générer
+  REGISTRY: ghcr.io
+  IMAGE_NAME: wish-app-api
 
 jobs:
   # --------- JOB 1 : Build + Publish Docker ----------
   build_and_publish:
-    runs-on: self-hosted # Le job s'exécute sur TON runner self-hosted
+    runs-on: self-hosted # runner CI/CD auto-hébergé
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Récupère le code du dépôt
+        uses: actions/checkout@v4
 
-      # ---- Connexion au registry GHCR ----
+      # ---- Login GHCR ----
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }} # ghcr.io
-          username: ${{ secrets.GHCR_USERNAME }} #  username GitHub (secret)
-          password: ${{ secrets.GHCR_PAT }} # PAT permettant le push (secret)
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
 
-      # ---- Build de l’image Docker ----
+      # ---- Build Docker image ----
       - name: Build backend Docker image
         run: |
-          docker build \                              # Commande de build Docker
-            -f Back/wish-app/Dockerfile \             # Chemin vers ton Dockerfile
-            -t $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest \    # Tag latest
-            -t $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:${{ github.sha }} \   # Tag unique par commit
-            Back/wish-app                            # Contexte Docker (dossier du backend)
+          docker build \
+            -f Back/wish-app/Dockerfile \
+            -t $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest \
+            -t $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:${{ github.sha }} \
+            Back/wish-app
 
-      # ---- Envoi de l’image vers GHCR ----
+      # ---- Push Docker image ----
       - name: Push backend image to GHCR
         run: |
-          docker push $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest     # Push tag latest
-          docker push $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:${{ github.sha }}   # Push tag commit
+          docker push $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest
+          docker push $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:${{ github.sha }}
 
   # --------- JOB 2 : Déploiement sur serveur de PROD ----------
   deploy:
-    runs-on: self-hosted # Exécuté du même runner
-    needs: build_and_publish # Ce job attend que le build soit réussi
+    runs-on: self-hosted
+    needs: build_and_publish
     steps:
       - name: Vérifier la connexion SSH
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PROD }}@${{ secrets.SSH_HOST_PROD }} "echo 'SSH OK'"
-        # Test que la connexion SSH fonctionne
 
       - name: Déployer le backend sur le serveur de production
-        uses: appleboy/ssh-action@v1.1.0 # Action GitHub pour exécuter des commandes SSH
+        uses: appleboy/ssh-action@v1.1.0
         with:
-          host: ${{ secrets.SSH_HOST_PROD }} # IP du serveur
-          username: ${{ secrets.SSH_USER_PROD }} # Nom d'utilisateur SSH
-          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }} # Clé privée SSH (secret)
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
           script: |
             echo "==> Connexion à GitHub Container Registry"
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            # Le serveur distant se connecte à GHCR pour pull l’image
 
             echo "==> Téléchargement de la dernière image backend"
             docker pull $REGISTRY/${{ secrets.GHCR_USERNAME }}/$IMAGE_NAME:latest
-            # Récupère la nouvelle image Docker
 
             echo "==> Mise à jour des conteneurs"
-            cd ~/Bureau/403-filrouge-TATKOVA-Anastasiia/wishApp   # Va au dossier de production
-            docker compose --env-file .env.prod -f docker-compose-prod.yml down    # Stop + supprime conteneurs
-            docker compose --env-file .env.prod -f docker-compose-prod.yml up -d   # Relance avec la nouvelle image
+            cd ~/Bureau/403-filrouge-TATKOVA-Anastasiia/wishApp
+            docker compose --env-file .env.prod -f docker-compose-prod.yml down
+            docker compose --env-file .env.prod -f docker-compose-prod.yml up -d
 
-            echo "Déploiement backend terminé avec succès."   # Message final
+            echo "Déploiement backend terminé avec succès."
