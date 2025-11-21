@@ -28,7 +28,7 @@ export default function WishlistScreen() {
 
                 // Infos wishlist
                 const resWishlist = await fetch(
-                    "http://localhost:4000/wishlist/690869eeb4bb6e4833e1f39d/6908692db4bb6e4833e1f399",
+                    "http://10.6.0.2:3000/wishlist/69202e22e1ce30730e3c40bd/69202ddee1ce30730e3c40b9",
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const dataWishlist = await resWishlist.json();
@@ -41,7 +41,7 @@ export default function WishlistScreen() {
 
                 // Souhaits liés
                 const resWishes = await fetch(
-                    "http://localhost:4000/wish/wishlist/690869eeb4bb6e4833e1f39d/available",
+                    "http://10.6.0.2:3000/wish/wishlist/69202e22e1ce30730e3c40bd/available",
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const dataWishes = await resWishes.json();
@@ -106,7 +106,7 @@ export default function WishlistScreen() {
 
     useEffect(() => {
         if (infoMessage) {
-            const timer = setTimeout(() => setInfoMessage(null), 4000);
+            const timer = setTimeout(() => setInfoMessage(null), 3000);
             return () => clearTimeout(timer);
         }
     }, [infoMessage]);

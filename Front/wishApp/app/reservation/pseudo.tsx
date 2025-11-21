@@ -20,7 +20,7 @@ export default function PseudoScreen() {
                 setErrorMessage("Vous avez déjà participé, vous ne pouvez pas créer un nouveau pseudo.");
                 return;
             }
-            const response = await fetch("http://localhost:4000/guest/add", {
+            const response = await fetch("http://10.6.0.2:3000/guest/add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -130,8 +130,8 @@ export default function ReservationsScreen() {
       }
       const lastSync = await AsyncStorage.getItem("reservations_last_sync");
       const url = lastSync
-        ? `http://localhost:4000/reservation/user/${storedUserId}?since=${lastSync}`
-        : `http://localhost:4000/reservation/user/${storedUserId}`;
+        ? `http://10.6.0.2:3000/reservation/user/${storedUserId}?since=${lastSync}`
+        : `http://10.6.0.2:3000/reservation/user/${storedUserId}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
