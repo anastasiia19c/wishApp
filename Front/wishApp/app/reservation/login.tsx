@@ -34,7 +34,7 @@ export default function LoginScreen() {
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://10.6.0.2:3000/user/login-as-guest", {
+            const response = await fetch("http://localhost:4000/user/login-as-guest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ email, password }),

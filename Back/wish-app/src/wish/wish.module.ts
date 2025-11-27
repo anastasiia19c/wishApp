@@ -4,6 +4,7 @@ import { WishService } from './wish.service';
 import { WishController } from './wish.controller';
 import { Wish, WishSchema } from './schema/wish.schema';
 import { Wishlist, WishlistSchema } from 'src/wishlist/schemas/wishlist.schema';
+import { WishGateway } from 'src/websocket/wish/wish.gateway';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { Wishlist, WishlistSchema } from 'src/wishlist/schemas/wishlist.schema';
     ]),
   ],
   controllers: [WishController],
-  providers: [WishService],
+  providers: [WishService, WishGateway],
 })
 export class WishModule {}

@@ -6,6 +6,7 @@ import { ReservationStorage } from "../../service/reservationStorage";
 import { syncReservations } from "../../service/syncService";
 import NetInfo from "@react-native-community/netinfo";
 import { WishStorage } from "../../service/wishStorage";
+import { useWishRealtime } from "@/hooks/useWishRealtime";
 
 export default function WishlistScreen() {
     const [wishlist, setWishlist] = useState<any>(null);
@@ -28,7 +29,7 @@ export default function WishlistScreen() {
 
                 // Infos wishlist
                 const resWishlist = await fetch(
-                    "http://10.6.0.2:3000/wishlist/69202e22e1ce30730e3c40bd/69202ddee1ce30730e3c40b9",
+                    "http://localhost:4000/wishlist/692822952ece7f72b0e6501f/692822632ece7f72b0e65017",
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const dataWishlist = await resWishlist.json();
@@ -41,7 +42,7 @@ export default function WishlistScreen() {
 
                 // Souhaits liés
                 const resWishes = await fetch(
-                    "http://10.6.0.2:3000/wish/wishlist/69202e22e1ce30730e3c40bd/available",
+                    "http://localhost:4000/wish/wishlist/692822952ece7f72b0e6501f/available",
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const dataWishes = await resWishes.json();
@@ -58,6 +59,20 @@ export default function WishlistScreen() {
 
         fetchData();
     }, []);
+
+    useWishRealtime({
+        onCreate: (wish) => {
+            setItems((prev) => [...prev, wish]);
+        },
+        onUpdate: (wish) => {
+            setItems((prev) =>
+                prev.map((w) => (w._id === wish._id ? wish : w))
+            );
+        },
+        onDelete: ({ id }) => {
+            setItems((prev) => prev.filter((w) => w._id !== id));
+        },
+    });
 
     useEffect(() => {
         let firstCheck = true;

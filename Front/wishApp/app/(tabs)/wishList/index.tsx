@@ -34,7 +34,7 @@ export default function WishListScreen() {
       const user_id = await storageSingleton.getItem("id");
       const token = await storageSingleton.getItem("token");
 
-      const res = await fetch(`http://10.6.0.2:3000/wishlist/user/${user_id}`, {
+      const res = await fetch(`http://localhost:4000/wishlist/user/${user_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -104,7 +104,7 @@ export default function WishListScreen() {
         return;
       }
 
-      const response = await fetch("http://10.6.0.2:3000/wishlist/add", {
+      const response = await fetch("http://localhost:4000/wishlist/add", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

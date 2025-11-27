@@ -5,13 +5,15 @@ import { Wish, WishDocument } from './schema/wish.schema';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { Wishlist, WishlistDocument } from '../wishlist/schemas/wishlist.schema';
+import { WishGateway } from 'src/websocket/wish/wish.gateway';
 
 @Injectable()
 export class WishService {
   constructor(
     @InjectModel(Wish.name) private wishModel: Model<WishDocument>,
     @InjectModel(Wishlist.name) private wishlistModel: Model<WishlistDocument>,
-  ) {}
+    private readonly gateway: WishGateway
+  ) { }
 
   async create(createWishDto: CreateWishDto): Promise<Wish> {
     // Vérifier que l’ID est bien un ObjectId valide
@@ -27,7 +29,11 @@ export class WishService {
     }
 
     try {
-      const newWish = new this.wishModel(createWishDto);
+      const newWish = await this.wishModel.create({
+        ...createWishDto,
+        wishlist_id: new Types.ObjectId(createWishDto.wishlist_id)
+      });
+      this.gateway.emit('wish:created', newWish);
       return await newWish.save();
     } catch (error: any) {
       if (error.code === 11000) {
@@ -64,6 +70,7 @@ export class WishService {
     if (!updated) {
       throw new NotFoundException(`Wish with id ${id} not found`);
     }
+    this.gateway.emit('wish:updated', updated);
     return updated;
   }
 
@@ -72,6 +79,7 @@ export class WishService {
     if (!deleted) {
       throw new NotFoundException(`Wish with id ${id} not found`);
     }
+    this.gateway.emit('wish:deleted', { id });
     return deleted;
   }
 }

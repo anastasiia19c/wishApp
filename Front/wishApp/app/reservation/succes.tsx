@@ -46,7 +46,7 @@ export default function EntranceScreen() {
             }
 
             // Mode en ligne → récupération depuis le serveur
-            const res = await fetch(`http://10.6.0.2:3000/reservation/${storedId}`, {
+            const res = await fetch(`http://localhost:4000/reservation/${storedId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
