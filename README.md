@@ -139,23 +139,30 @@ Développement réalisé avec Visual Studio Code et les plugins :
 ---
 
 ### 🧪 Installation & lancement du projet
-- 1️⃣ Cloner le projet
+
+1️⃣ Cloner le projet
+
 - git clone https://github.com/anastasiia19c/wishApp.git
 
-- 2️⃣ Installer les dépendances
-- Backend (NestJS)
+
+2️⃣ Installer les dépendances
+
+Backend (NestJS)
 - cd Back/wish-app
 - npm install
 
-- Frontend (React Native)
+Frontend (React Native)
 - cd Front/wishApp
 - npm install
 
-- 3️⃣ Lancer l’environnement de développement
-- Backend (NestJS + MongoDB via Docker)
+
+3️⃣ Lancer l’environnement de développement
+
+Backend (NestJS + MongoDB via Docker)
 - docker compose -f docker-compose-dev.yml --env-file .env.dev up -d --build
 
-- Frontend (Expo)
+Frontend (Expo)
 - npm run start
+
 
 
