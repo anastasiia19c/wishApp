@@ -124,39 +124,38 @@ Développement réalisé avec Visual Studio Code et les plugins :
 - **Prettier** : formatage automatique
 
 ### Lint & Format Backend
-npm run lint
-npx prettier --write .
+- npm run lint
+- npx prettier --write .
 
 ### Lint & Format Frontend
-bash
-Copier le code
-npm run lint
-npx prettier --write .
+- npm run lint
+- npx prettier --write .
 
-🌿 Branches Git
-main → production
-develop → développement principal
-PRO403-X-nom-de-la-tache → features
+### 🌿 Branches Git
+- main → production
+- develop → développement principal
+- PRO403-X-nom-de-la-tache → features
 
+---
 
+### 🧪 Installation & lancement du projet
+- 1️⃣ Cloner le projet
+- git clone https://github.com/anastasiia19c/wishApp.git
 
-🧪 Installation & lancement du projet
-1️⃣ Cloner le projet
-git clone https://github.com/anastasiia19c/wishApp.git
+- 2️⃣ Installer les dépendances
+- Backend (NestJS)
+- cd Back/wish-app
+- npm install
 
-2️⃣ Installer les dépendances
-Backend (NestJS)
-cd Back/wish-app
-npm install
+- Frontend (React Native)
+- cd Front/wishApp
+- npm install
 
-Frontend (React Native)
-cd Front/wishApp
-npm install
+- 3️⃣ Lancer l’environnement de développement
+- Backend (NestJS + MongoDB via Docker)
+- docker compose -f docker-compose-dev.yml --env-file .env.dev up -d --build
 
-3️⃣ Lancer l’environnement de développement
-Backend (NestJS + MongoDB via Docker)
-docker compose -f docker-compose-dev.yml --env-file .env.dev up -d --build
+- Frontend (Expo)
+- npm run start
 
-Frontend (Expo)
-npm run start
 
