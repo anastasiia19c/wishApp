@@ -9,6 +9,8 @@ type Props = {
 
 export const useWishRealtime = ({ onCreate, onUpdate, onDelete }: Props) => {
     useEffect(() => {
+        socket.emit("joinWish");
+
         socket.on("wish:created", onCreate);
         socket.on("wish:updated", onUpdate);
         socket.on("wish:deleted", onDelete);
